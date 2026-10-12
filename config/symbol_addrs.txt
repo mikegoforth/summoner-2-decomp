@@ -93,3 +93,55 @@ valid__13RealtimeTimerFv = 0x0019B480; // type:func
 Timestamp_ticker = 0x002D3F60; // type:s32 size:0x4
 Timestamp_realtime_ticker = 0x002D3F64; // type:s32 size:0x4
 Timestamp_paused = 0x002D48C8; // type:s32 size:0x4
+
+// norlsallocpool.cpp
+__ct__14NoRlsAllocPoolFv = 0x00199BB0; // type:func
+__dt__14NoRlsAllocPoolFv = 0x00199C00; // type:func
+Release__14NoRlsAllocPoolFv = 0x00199C60; // type:func
+AddBlock__14NoRlsAllocPoolFv = 0x00199CF0; // type:func
+Init__14NoRlsAllocPoolFPUcUi = 0x00199D70; // type:func
+Reset__14NoRlsAllocPoolFv = 0x00199DB0; // type:func
+Alloc__14NoRlsAllocPoolFUi = 0x00199DE0; // type:func
+Align__14NoRlsAllocPoolFv = 0x00199E90; // type:func
+
+// plainstring.cpp
+is_blank__FPCc = 0x00199EE0; // type:func
+trim_whitespace__FPcPCc = 0x00199F70; // type:func
+int_to_string_with_commas__FPcii = 0x0019A070; // type:func
+stristr__FPCcPCc = 0x0019A1C0; // type:func
+strlwr__FPc = 0x0019A2B0; // type:func
+strupr__FPc = 0x0019A310; // type:func
+int_to_string__FPcii = 0x0019A370; // type:func
+vector3_to_string__FPciRC7vector3i = 0x0019A3B0; // type:func
+
+// stringpool.cpp
+Init__10StringPoolFPcib = 0x0019AA80; // type:func
+Reset__10StringPoolFv = 0x0019AAA0; // type:func
+Release__10StringPoolFv = 0x0019AAB0; // type:func
+Add__10StringPoolFPCc = 0x0019AB10; // type:func
+AddUnique__10StringPoolFPCc = 0x0019ABD0; // type:func
+AddQuoted__10StringPoolFPv = 0x0019AC80; // type:func
+__ct__10StringPoolFv = 0x0019ACD0; // type:func
+
+// timer.cpp
+timer_interrupt_handler__Fi = 0x0019ACF0; // type:func
+timer_initialize__Fv = 0x0019AD20; // type:func
+timer_get__Fi = 0x0019AD90; // type:func
+timer_get_ticks__Fv = 0x0019AE60; // type:func
+timer_get_elapsed__Fxxi = 0x0019AE70; // type:func
+timer_wait__Fi = 0x0019AFB0; // type:func
+Timer_initialized = 0x002D48BC; // type:u8 size:0x4
+Timer_ticks = 0x002D48C0; // type:u64 size:0x8
+
+// libc and compiler runtime
+strlen = 0x0024FD38; // type:func
+strncpy = 0x00250070; // type:func
+strstr = 0x00250280; // type:func
+__nwa__FUi = 0x00247470; // type:func
+fptodp = 0x00256160; // type:func
+__udivdi3 = 0x002551F8; // type:func
+_f_ulltof = 0x001000D0; // type:func
+
+// libkernel (Sony SDK 2.4)
+AddIntcHandler = 0x001B5480; // type:func
+EnableIntc = 0x001B62D8; // type:func

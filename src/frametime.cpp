@@ -1,9 +1,6 @@
 #include "game/frametime.h"
+#include "game/timer.h"
 #include "game/timestamp.h"
-
-// TODO: name these once timer.cpp is split (GC: NGCSystem::GetTimeFromTicks, Wait).
-extern "C" int func_0019AD90(int ticks_per_second);
-extern "C" void func_0019AFB0(int milliseconds);
 
 const int frametime_history_size = 16;
 
@@ -51,7 +48,7 @@ void FrameDone() {
     if (Frametime_paused) {
         return;
     }
-    int microsecond_ticks = func_0019AD90(1000000);
+    int microsecond_ticks = timer_get(1000000);
     int delta_time;
     if (microsecond_ticks < previous_done_time) {
         delta_time = microsecond_ticks;
@@ -66,7 +63,7 @@ void FrameDone() {
     reported_frametime = actual_frametime;
     if (reported_frametime < min_reported_frametime) {
         float frame_limit_wait_time = min_reported_frametime - reported_frametime;
-        func_0019AFB0(frame_limit_wait_time * 1000.0f);
+        timer_wait(frame_limit_wait_time * 1000.0f);
         reported_frametime = min_reported_frametime;
     } else if (reported_frametime > max_reported_frametime) {
         reported_frametime = max_reported_frametime;
@@ -104,7 +101,7 @@ void increase_frametime_pause_counter() { Frametime_paused++; }
 
 void decrease_frametime_pause_counter() {
     Frametime_paused--;
-    previous_done_time = func_0019AD90(1000000);
+    previous_done_time = timer_get(1000000);
 }
 
 void increase_animation_pause_counter() { Animation_timer_paused++; }

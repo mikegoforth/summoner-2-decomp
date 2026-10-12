@@ -57,7 +57,12 @@ save.
 The [Build workflow](.github/workflows/build.yml) builds on every push, checks the result matches,
 and uploads `build/report.json` as the `SLUS_204.48_report` artifact that decomp.dev reads.
 The executable can't be committed, so CI downloads it from a private URL in the repository secret
-`ELF_URL`. Without the secret, the workflow only installs dependencies.
+`ELF_URL`. Until that secret exists, CI uploads `progress/report.json` instead, so refresh it in
+any pull request that changes matching code:
+
+```sh
+.venv/bin/ninja report && cp build/report.json progress/report.json
+```
 
 ## Tips
 

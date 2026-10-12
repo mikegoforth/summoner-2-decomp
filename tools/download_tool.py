@@ -20,7 +20,7 @@ TOOLS = ROOT / "tools"
 BINUTILS_VERSION = "v0.10"
 WIBO_VERSION = "1.2.0"
 OBJDIFF_VERSION = "v3.8.2"
-COMPILER = "mwcps2-3.0.3-020716"
+COMPILER = "mwcps2-3.0-011126"
 
 
 def host() -> tuple[str, str]:

@@ -42,9 +42,11 @@ def target_sizes() -> dict[int, int]:
     return sizes
 
 
-def compile_source(src: Path, out: Path) -> None:
+def compile_source(src: Path, out: Path, compiler: str | None = None, pragmas=()) -> None:
     env = dict(os.environ, MWCIncludes="include")
-    cmd = [str(configure.WIBO), str(configure.MWCC), *configure.CFLAGS.split(), "-c", "-o", str(out), str(src)]
+    mwcc = configure.MWCC if compiler is None else Path("tools/compilers") / compiler / "mwccps2.exe"
+    extra = [arg for pragma in pragmas for arg in ("-pragma", pragma)]
+    cmd = [str(configure.WIBO), str(mwcc), *configure.CFLAGS, *extra, "-c", "-o", str(out), str(src)]
     if sys.platform == "win32":
         cmd = cmd[1:]
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
@@ -97,6 +99,9 @@ def same(target: int, base: int, relocated: bool) -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-v", "--verbose", action="store_true", help="print side-by-side listings")
+    parser.add_argument("--compiler", help="compiler under tools/compilers/ to use instead of the project's")
+    parser.add_argument("--pragma", action="append", default=[], help='extra pragma, e.g. --pragma "fast_fptosi on"')
+    parser.add_argument("-q", "--quiet", action="store_true", help="only print the summary line")
     parser.add_argument("source", type=Path)
     parser.add_argument("pairs", nargs="+", metavar="symbol=0xADDRESS")
     args = parser.parse_args()
@@ -105,7 +110,7 @@ def main() -> None:
     sizes = target_sizes()
     with tempfile.TemporaryDirectory() as tmp:
         obj = Path(tmp) / "match.o"
-        compile_source(args.source, obj)
+        compile_source(args.source, obj, args.compiler, args.pragma)
         funcs = base_functions(obj)
 
     matched = 0
@@ -130,7 +135,8 @@ def main() -> None:
             if i >= len(target) or i >= len(base) or not same(target[i], base[i][0], base[i][1])
         )
         status = "MATCH" if diffs == 0 else f"{diffs} differences ({len(base)} vs {len(target)} instructions)"
-        print(f"{symbol:48s} {addr:#010x}  {status}")
+        if not args.quiet:
+            print(f"{symbol:48s} {addr:#010x}  {status}")
         matched += diffs == 0
         if args.verbose and diffs:
             for i in range(max(len(target), len(base))):

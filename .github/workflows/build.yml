@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,10 +46,19 @@ jobs:
           ninja report
           python tools/progress.py build/report.json
 
-      # decomp.dev reads this artifact from runs on the default branch.
+      # decomp.dev reads this artifact from push runs on the default branch.
       - name: Upload report
         if: env.ELF_URL != ''
         uses: actions/upload-artifact@v4
         with:
           name: SLUS_204.48_report
           path: build/report.json
+
+      # Until CI can build, publish the report committed in progress/report.json
+      # (regenerate it with `ninja report` and copy build/report.json over it).
+      - name: Upload committed report
+        if: env.ELF_URL == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: SLUS_204.48_report
+          path: progress/report.json

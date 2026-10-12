@@ -15,6 +15,7 @@ build fails if the result is not byte-identical.
 import argparse
 import json
 import re
+import shlex
 import subprocess
 import sys
 from collections import OrderedDict
@@ -39,7 +40,17 @@ OBJDIFF = Path("tools/bin/objdiff-cli")
 MWCC = Path("tools/compilers") / download_tool.COMPILER / "mwccps2.exe"
 
 ASFLAGS = "-EL -march=r5900 -mabi=eabi -G 0 -no-pad-sections -mno-pdr -I include"
-CFLAGS = "-O4,p -str readonly -Cpp_exceptions off -gccinc -Iinclude -Isrc"
+# fast_fptosi makes (int)float compile to an inline trunc.w.s instead of a call to fptosi;
+# the game was built with it on (see docs/compiler.md).
+CFLAGS = [
+    "-O4,p",
+    "-str", "readonly",
+    "-Cpp_exceptions", "off",
+    "-pragma", "fast_fptosi on",
+    "-gccinc",
+    "-Iinclude",
+    "-Isrc",
+]
 
 # --------------------------------------------------------------------------
 # Translation-unit status. Units not listed here are NonMatching if
@@ -52,10 +63,12 @@ NonMatching = "NonMatching"
 
 UNIT_STATUS = {
     "frametime": Matching,
+    "memory": Matching,
+    "norlsallocpool": Matching,
+    "plainstring": NonMatching,  # "%d" lands 4 bytes early when linked; see docs/compiler.md
+    "stringpool": Matching,
+    "timer": Matching,
     "timestamp": Matching,
-    # allocate_in_commonblock differs by one delay slot under 3.0.3 (3.0-011126 matches it,
-    # but that build calls fptosi for float->int casts, which the game never does).
-    "memory": NonMatching,
 }
 
 
@@ -163,7 +176,7 @@ def main() -> None:
     n.variable("ninja_required_version", "1.10")
     n.variable("binutils", str(BINUTILS))
     n.variable("asflags", ASFLAGS)
-    n.variable("cflags", CFLAGS)
+    n.variable("cflags", shlex.join(CFLAGS))
     n.variable("wibo", str(WIBO) if sys.platform != "win32" else "")
     n.variable("mwcc", str(MWCC))
     n.newline()
