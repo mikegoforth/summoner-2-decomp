@@ -1,6 +1,10 @@
 # Summoner 2
 
 [![Build](https://github.com/mikegoforth/summoner-2-decomp/actions/workflows/build.yml/badge.svg)](https://github.com/mikegoforth/summoner-2-decomp/actions/workflows/build.yml)
+[![Code](https://decomp.dev/mikegoforth/summoner-2-decomp/SLUS_204.48.svg?mode=shield&measure=code&label=Code)](https://decomp.dev/mikegoforth/summoner-2-decomp/SLUS_204.48)
+[![Data](https://decomp.dev/mikegoforth/summoner-2-decomp/SLUS_204.48.svg?mode=shield&measure=data&label=Data)](https://decomp.dev/mikegoforth/summoner-2-decomp/SLUS_204.48)
+
+![Progress](https://decomp.dev/mikegoforth/summoner-2-decomp/SLUS_204.48.png?mode=report)
 
 This project rebuilds the PlayStation 2 version of Summoner 2 (2002) from C++ source.
 Each function is rewritten until the game's original compiler turns it back into exactly the
