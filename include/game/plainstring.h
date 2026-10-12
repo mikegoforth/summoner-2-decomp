@@ -9,7 +9,8 @@
 class vector3;
 
 bool is_blank(const char* string);
-void trim_whitespace(char* destination, const char* source);
+// max_length is accepted but unused.
+void trim_whitespace(char* destination, const char* source, int max_length);
 char* int_to_string_with_commas(char* destination, int size, int value);
 char* stristr(const char* string, const char* substring);
 char* strlwr(char* string);

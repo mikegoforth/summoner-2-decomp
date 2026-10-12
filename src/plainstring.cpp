@@ -1,10 +1,8 @@
 #include "game/plainstring.h"
+#include "game/platform_ngps.h"
 #include <stdio.h>
 #include <string.h>
 
-// TODO: name once platform_ngps.cpp is split. ASCII-only tolower/toupper.
-extern "C" char func_0019A4C0(char c);
-extern "C" char func_0019A500(char c);
 
 class vector3 {
 public:
@@ -26,7 +24,7 @@ bool is_blank(const char* string) {
     return true;
 }
 
-void trim_whitespace(char* destination, const char* source) {
+void trim_whitespace(char* destination, const char* source, int max_length) {
     int length = strlen(source);
     int first;
     int last;
@@ -99,11 +97,11 @@ char* stristr(const char* string, const char* substring) {
     char* found;
 
     for (i = 0; i < string_length; i++) {
-        lower_string[i] = func_0019A4C0(string[i]);
+        lower_string[i] = ngps_tolower(string[i]);
     }
     lower_string[i] = '\0';
     for (i = 0; i < substring_length; i++) {
-        lower_substring[i] = func_0019A4C0(substring[i]);
+        lower_substring[i] = ngps_tolower(substring[i]);
     }
     lower_substring[i] = '\0';
     found = strstr(lower_string, lower_substring);
@@ -118,7 +116,7 @@ char* strlwr(char* string) {
         char* p = string;
         char c;
         do {
-            c = func_0019A4C0(*p);
+            c = ngps_tolower(*p);
             *p++ = c;
         } while (c);
     }
@@ -130,7 +128,7 @@ char* strupr(char* string) {
         char* p = string;
         char c;
         do {
-            c = func_0019A500(*p);
+            c = ngps_toupper(*p);
             *p++ = c;
         } while (c);
     }

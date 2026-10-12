@@ -52,10 +52,9 @@ Three things separate the builds:
 - **Retail asserts.** Hard errors compile to `jal DebugError` followed by `break 0; nop`.
   CodeWarrior's inline assembler treats `break` as the C keyword, so `include/macros.h` spells it
   `asm(".word 0x0000000D"); asm("nop");`.
-- **String alignment when linking.** CodeWarrior gives string literals shorter than 4 bytes
-  4-byte alignment, but the game's linker put `plainstring.cpp`'s `"%d"` on an 8-byte boundary.
-  Until that rule is understood, `plainstring.cpp` is compared in objdiff but not linked from
-  source.
+- **String alignment.** CodeWarrior marks string literals of 4 bytes or fewer as 4-byte aligned,
+  but every string literal in the game sits on an 8-byte boundary. The build raises those
+  sections to 8 after compiling (`tools/fix_alignment.py`) so GNU ld places them the same way.
 - **Static initializers** (`__sinit_<file>_cpp`) go to `.init`, with a pointer in `.ctor`. In
   the executable these sit together after `.rodata` (`0x2CF680` and `0x2D39D0`), not next to
   their file's code. They aren't split per file yet, so a variable that only a static

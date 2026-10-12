@@ -9,6 +9,9 @@ extern "C" {
 
 void* malloc(size_t size);
 void free(void* ptr);
+double atof(const char* s);
+int atoi(const char* s);
+long strtol(const char* s, char** end, int base);
 
 #ifdef __cplusplus
 }

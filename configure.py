@@ -62,10 +62,15 @@ Matching = "Matching"
 NonMatching = "NonMatching"
 
 UNIT_STATUS = {
+    # console.cpp: its static initializer is still in the shared .init assembly, which refers to
+    # this file's string literals by address, so it can only be linked once .init is split.
+    "console": NonMatching,
+    "debug": Matching,
     "frametime": Matching,
     "memory": Matching,
     "norlsallocpool": Matching,
-    "plainstring": NonMatching,  # "%d" lands 4 bytes early when linked; see docs/compiler.md
+    "plainstring": Matching,
+    "platform_ngps": Matching,
     "stringpool": Matching,
     "timer": Matching,
     "timestamp": Matching,
@@ -194,7 +199,7 @@ def main() -> None:
     )
     n.rule(
         "mwcc",
-        "MWCIncludes=include $wibo $mwcc $cflags -c -o $out $in",
+        f"MWCIncludes=include $wibo $mwcc $cflags -c -o $out $in && {sys.executable} tools/fix_alignment.py $out",
         description="MWCC $in",
     )
     n.rule("ld_r", "${binutils}-ld -EL -r -o $out $in", description="LD -r $out")

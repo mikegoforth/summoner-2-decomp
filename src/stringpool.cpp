@@ -1,10 +1,9 @@
 #include "game/stringpool.h"
+#include "game/platform_ngps.h"
 #include "macros.h"
 #include <string.h>
 
 // TODO: name these once their units are split.
-// Case-insensitive compare (tail-calls func_0019A640 with a 0x2000000 length limit); 0 when equal.
-extern "C" int func_0019A740(const char* a, const char* b);
 // Parser: reads the next string between `open` and `close` into `buffer` (parse.cpp).
 extern "C" void func_0019EE90(void* parser, char* buffer, int buffer_size, char open, char close);
 
@@ -60,7 +59,7 @@ char* StringPool::AddUnique(const char* string) {
     }
     entry = pool;
     for (index = 0; index < count; index++) {
-        if (func_0019A740(entry, string) == 0) {
+        if (ngps_stricmp(entry, string) == 0) {
             break;
         }
         entry += strlen(entry) + 1;
