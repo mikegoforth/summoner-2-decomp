@@ -1,15 +1,8 @@
 #include "game/plainstring.h"
 #include "game/platform_ngps.h"
+#include "game/unit_00196B10.h"
 #include <stdio.h>
 #include <string.h>
-
-
-class vector3 {
-public:
-    float x;
-    float y;
-    float z;
-};
 
 bool is_blank(const char* string) {
     int length = strlen(string);

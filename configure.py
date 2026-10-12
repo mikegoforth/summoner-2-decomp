@@ -66,14 +66,26 @@ UNIT_STATUS = {
     # this file's string literals by address, so it can only be linked once .init is split.
     "console": NonMatching,
     "debug": Matching,
+    "file_packfile": Matching,
     "frametime": Matching,
+    "matrix": NonMatching,  # static initializer still in the shared .init assembly
+    "memcard": NonMatching,  # static initializer still in the shared .init assembly
+    "memcard_find": Matching,
     "memory": Matching,
+    "ngps_file": NonMatching,  # static initializer still in the shared .init assembly
     "norlsallocpool": Matching,
+    "parse": Matching,
     "plainstring": Matching,
     "platform_ngps": Matching,
     "stringpool": Matching,
     "timer": Matching,
     "timestamp": Matching,
+    "unit_0018F070": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00190720": Matching,
+    "unit_00194A80": Matching,
+    "unit_00196B10": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00197430": Matching,
+    "unit_00197D00": Matching,
 }
 
 

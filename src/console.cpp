@@ -1,39 +1,13 @@
 #include "game/console.h"
 #include "game/debug.h"
+#include "game/ngps_file.h"
+#include "game/parse.h"
 #include "game/plainstring.h"
 #include "game/platform_ngps.h"
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// TODO: path helper, called as (dst, src, ".txt"); probably adds a default extension.
-extern "C" void func_001A0F70(char* dst, const char* src, const char* extension);
-
-// TODO: file classes from other units; names are placeholders.
-class SysFile {
-  public:
-    SysFile();                                      // 0x1A1C30
-    ~SysFile();                                     // 0x1A1C50
-    int Open(const char* name, int mode, int size); // 0x1A1EF0
-    int Close();                                    // 0x1A1F40
-    void Write(const char* text, int length);       // 0x1A28D0
-
-  private:
-    u8 data[0x120];
-};
-
-class TextFile {
-  public:
-    TextFile();                             // 0x19DC60
-    ~TextFile();                            // 0x19DC80
-    int Open(const char* name, int size);   // 0x19E1F0
-    void Close();                           // 0x19E320
-    BOOL ReadLine(char* buffer, int size);  // 0x19E4C0
-
-  private:
-    u8 data[0x60];
-};
 
 // Character classes used by the command line tokenizer.
 enum {
@@ -567,7 +541,7 @@ void load_script(char* script_file) {
     BOOL in_comment;
 
     strcpy(filename, script_file);
-    func_001A0F70(filename, filename, ".txt");
+    change_extension(filename, filename, ".txt");
     if (file.Open(filename, 9999999) < 0) {
         sprintf(string_buffer, "Couldn't find a script file '%s'\n", filename);
         print_to_console(string_buffer, false);

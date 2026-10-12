@@ -58,6 +58,16 @@ segments:
     subsegments:
       # ---- .text 0x00100000: game code (MWCC C++) + Sony SDK 2.4 libraries ----
       - [0x000000, asm, text_00100000]
+      - [0x08F070, asm, unit_0018F070]
+      - [0x090720, asm, unit_00190720]
+      - [0x09086C, asm, text_0019086C]
+      - [0x093990, asm, matrix]
+      - [0x094A80, asm, unit_00194A80]
+      - [0x0951C8, asm, text_001951C8]
+      - [0x096B10, asm, unit_00196B10]
+      - [0x097428, asm, text_00197428]
+      - [0x097430, asm, unit_00197430]
+      - [0x097D00, asm, unit_00197D00]
       - [0x097D30, asm, console]
       - [0x099450, asm, debug]
       - [0x099580, asm, frametime]
@@ -69,14 +79,27 @@ segments:
       - [0x09ACF0, asm, timer]
       - [0x09B010, asm, timestamp]
       - [0x09B490, asm, text_0019B490]
+      - [0x09DC60, asm, parse]
+      - [0x09F530, asm, memcard_find]
+      - [0x09F660, asm, memcard]
+      - [0x0A0E70, asm, ngps_file]
+      - [0x0A2950, asm, text_001A2950]
+      - [0x0A45F0, asm, file_packfile]
+      - [0x0A5CE0, asm, text_001A5CE0]
       # ---- 0x002A3380 VU1 microcode ----
       - [0x1A3380, bin, vutext]
       # ---- 0x002A8300 .data (also holds libkernel's kseg0 patch code at 0x2ABA80) ----
       - [0x1A8300, data, data_002A8300]
+      - [0x1A9B70, data, matrix]
       - [0x1A9B80, data, platform_ngps]
       - [0x1A9B90, data, data_002A9B90]
+      - [0x1A9CA0, data, memcard]
+      - [0x1A9D20, data, data_002A9D20]
       # ---- 0x002B3100 .rodata (start is a guess from the first jump table) ----
       - { start: 0x1B3100, type: rodata, name: rodata_002B3100, linker_section_order: .data }
+      - { start: 0x1B9610, type: rodata, name: unit_0018F070, linker_section_order: .data }
+      - { start: 0x1B9690, type: rodata, name: rodata_002B9690, linker_section_order: .data }
+      - { start: 0x1B96B0, type: rodata, name: matrix, linker_section_order: .data }
       - { start: 0x1B96F0, type: rodata, name: console, linker_section_order: .data }
       - { start: 0x1B9AF0, type: rodata, name: debug, linker_section_order: .data }
       - { start: 0x1B9B10, type: rodata, name: memory, linker_section_order: .data }
@@ -85,28 +108,61 @@ segments:
       - { start: 0x1B9CC8, type: rodata, name: stringpool, linker_section_order: .data }
       - { start: 0x1B9D00, type: rodata, name: timer, linker_section_order: .data }
       - { start: 0x1B9D40, type: rodata, name: rodata_002B9D40, linker_section_order: .data }
+      - { start: 0x1B9D98, type: rodata, name: parse, linker_section_order: .data }
+      - { start: 0x1B9FC8, type: rodata, name: memcard, linker_section_order: .data }
+      - { start: 0x1BA008, type: rodata, name: ngps_file, linker_section_order: .data }
+      - { start: 0x1BA058, type: rodata, name: rodata_002BA058, linker_section_order: .data }
+      - { start: 0x1BA170, type: rodata, name: file_packfile, linker_section_order: .data }
+      - { start: 0x1BA2F8, type: rodata, name: rodata_002BA2F8, linker_section_order: .data }
       # ---- 0x002CF680 C++ static initializers (__sinit_*) ----
       - { start: 0x1CF680, type: asm, name: sinit, linker_section_order: .data }
       # ---- 0x002D39D0 static initializer table (135 entries), then misc data ----
       - [0x1D39D0, data, ctors]
       # ---- 0x002D3D00 .sdata (_gp = 0x2D3D00 + 0x7FF0) ----
       - { start: 0x1D3D00, type: sdata, name: sdata_002D3D00, linker_section_order: .data }
+      - { start: 0x1D3F04, type: sdata, name: unit_0018F070, linker_section_order: .data }
+      - { start: 0x1D3F14, type: sdata, name: sdata_002D3F14, linker_section_order: .data }
+      - { start: 0x1D3F30, type: sdata, name: unit_00194A80, linker_section_order: .data }
       - { start: 0x1D3F34, type: sdata, name: console, linker_section_order: .data }
       - { start: 0x1D3F3C, type: sdata, name: frametime, linker_section_order: .data }
       - { start: 0x1D3F58, type: sdata, name: memory, linker_section_order: .data }
       - { start: 0x1D3F60, type: sdata, name: timestamp, linker_section_order: .data }
       - { start: 0x1D3F68, type: sdata, name: sdata_002D3F68, linker_section_order: .data }
+      - { start: 0x1D3F70, type: sdata, name: ngps_file, linker_section_order: .data }
+      - { start: 0x1D3F74, type: sdata, name: sdata_002D3F74, linker_section_order: .data }
       # ---- 0x002D4200 .sbss/.bss (includes a large static heap) up to _end = 0x018E0300 ----
       - { start: 0x1D4200, type: bss, vram: 0x002D4200, name: bss_002D4200 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D47D0, name: unit_0018F070, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D47E6, name: bss_002D47E6 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4820, name: unit_00194A80, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D4821, name: bss_002D4821 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4830, name: unit_00196B10, linker_section_order: .bss }
       - { start: 0x1D4200, type: sbss, vram: 0x002D4838, name: console, linker_section_order: .bss }
       - { start: 0x1D4200, type: sbss, vram: 0x002D4868, name: frametime, linker_section_order: .bss }
       - { start: 0x1D4200, type: sbss, vram: 0x002D488C, name: memory, linker_section_order: .bss }
       - { start: 0x1D4200, type: sbss, vram: 0x002D48BC, name: timer, linker_section_order: .bss }
       - { start: 0x1D4200, type: sbss, vram: 0x002D48C8, name: timestamp, linker_section_order: .bss }
       - { start: 0x1D4200, type: bss, vram: 0x002D48CC, name: bss_002D48CC }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D48E4, name: memcard, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D48E8, name: bss_002D48E8 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D48F8, name: file_packfile, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D490D, name: bss_002D490D }
       - { start: 0x1D4200, type: bss, vram: 0x007C2F80, name: memory }
       - { start: 0x1D4200, type: bss, vram: 0x00809F80, name: bss_00809F80 }
+      - { start: 0x1D4200, type: bss, vram: 0x0091E780, name: unit_0018F070 }
+      - { start: 0x1D4200, type: bss, vram: 0x0091F700, name: bss_0091F700 }
+      - { start: 0x1D4200, type: bss, vram: 0x00921C30, name: matrix }
+      - { start: 0x1D4200, type: bss, vram: 0x00921C90, name: unit_00194A80 }
+      - { start: 0x1D4200, type: bss, vram: 0x00925670, name: bss_00925670 }
+      - { start: 0x1D4200, type: bss, vram: 0x00925680, name: unit_00196B10 }
+      - { start: 0x1D4200, type: bss, vram: 0x0092568C, name: bss_0092568C }
       - { start: 0x1D4200, type: bss, vram: 0x00925690, name: console }
       - { start: 0x1D4200, type: bss, vram: 0x00926340, name: frametime }
       - { start: 0x1D4200, type: bss, vram: 0x00926380, name: bss_00926380 }
+      - { start: 0x1D4200, type: bss, vram: 0x009267B0, name: memcard }
+      - { start: 0x1D4200, type: bss, vram: 0x009267CC, name: bss_009267CC }
+      - { start: 0x1D4200, type: bss, vram: 0x00928800, name: ngps_file }
+      - { start: 0x1D4200, type: bss, vram: 0x00929A04, name: bss_00929A04 }
+      - { start: 0x1D4200, type: bss, vram: 0x00949BC0, name: file_packfile }
+      - { start: 0x1D4200, type: bss, vram: 0x009B6B50, name: bss_009B6B50 }
   - [0x1D4200]

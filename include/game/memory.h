@@ -5,7 +5,8 @@
 #include <stddef.h>
 
 #define COMMON_BLOCK_SIZE 0x47000
-#define MAX_POOL_NAME_LENGTH 32
+// Makes a Mempool 0x20 bytes, as in the game (file_packfile.cpp's two pools sit 0x20 apart).
+#define MAX_POOL_NAME_LENGTH 19
 
 class Mempool {
 public:

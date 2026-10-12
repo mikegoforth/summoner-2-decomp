@@ -2,6 +2,7 @@
 // game uses in place of the C library's. Only ngps_fopen, ngps_fseek and find_free_handle are named
 // by the retail asserts; the other names are guesses after the C library functions they mirror.
 #include "game/platform_ngps.h"
+#include "game/ngps_file.h"
 #include "types.h"
 #include "macros.h"
 #include <string.h>
@@ -15,9 +16,8 @@ int sceRead(int fd, void* buf, int nbyte);
 int sceLseek(int fd, int offset, int where);
 // newlib's C strlwr (0x24FE70, uses the _ctype_ table), not plainstring.cpp's C++ strlwr.
 char* strlwr(char* s);
-// TODO: name once their units are split. Both return a global flag; ngps_fopen opens files on the
-// hard disk ("pfs0:/") when the first is clear and the second is set, otherwise on the host.
-int func_001A1BD0(void);
+// TODO: name once its unit is split. Returns a global flag; ngps_fopen opens files on the hard disk
+// ("pfs0:/") when use_host_files() is clear and this is set, otherwise on the host.
 int func_0025DD80(void);
 }
 
@@ -146,7 +146,7 @@ NGPS_FILE* ngps_fopen(const char* filename, const char* mode) {
     char path[256];
 
     file = find_free_handle();
-    if (!func_001A1BD0() && func_0025DD80()) {
+    if (!use_host_files() && func_0025DD80()) {
         strcpy(path, "pfs0:/");
         permissions = 0666;
     } else {
