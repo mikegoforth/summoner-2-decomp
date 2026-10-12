@@ -1,0 +1,16 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{c,cpp,h,hpp,py,yaml,yml,md}]
+indent_style = space
+
+[*.{c,cpp,h,hpp,py}]
+indent_size = 4
+
+[*.{yaml,yml}]
+indent_size = 2
