@@ -4,7 +4,8 @@
 #include "types.h"
 #include "game/timestamp.h"
 
-// Controller input and vibration on top of libpad.
+// Controller input and vibration on top of libpad: opening the ports, choosing the controller mode,
+// reading what the vibration motors can do, and the button and stick state read every frame.
 
 #define PAD_PORTS 2
 #define PAD_BUTTONS 16
@@ -14,6 +15,30 @@
 
 // PadPort::flags
 #define PAD_CONNECTED 0x01
+
+// Pad_port_mode values.
+#define PAD_PORT_MODE_ONE 0  // port 1 only
+#define PAD_PORT_MODE_BOTH 1 // ports 1 and 2
+
+// Buttons, as bit numbers in the libpad button word and indexes into PadPort::buttons.
+enum {
+    PAD_SELECT = 0,
+    PAD_L3 = 1,
+    PAD_R3 = 2,
+    PAD_START = 3,
+    PAD_UP = 4,
+    PAD_RIGHT = 5,
+    PAD_DOWN = 6,
+    PAD_LEFT = 7,
+    PAD_L2 = 8,
+    PAD_R2 = 9,
+    PAD_L1 = 10,
+    PAD_R1 = 11,
+    PAD_TRIANGLE = 12,
+    PAD_CIRCLE = 13,
+    PAD_CROSS = 14,
+    PAD_SQUARE = 15,
+};
 
 // Sticks, as passed to pad_get_stick and friends.
 enum {
@@ -81,6 +106,20 @@ extern int Pad_port_mode;
 extern u8 Pad_wait_for_release[PAD_PORTS];
 extern PadPort Pads[PAD_PORTS];
 
+void pad_wait_for_request(int port);
+void pad_wait_until_stable(int port);
+void pad_select_mode(int port);
+void pad_read_actuators(PadPort* pad, int port);
+void pad_update_vibration(int port);
+int pad_open(int port);
+void pad_wait_for_controller(int port);
+int pad_open_ports(void);
+int pad_initialize(int port_mode);
+void pad_reset(void);
+int pad_is_connected(int port);
+// While the button is down, returns 1 and stores how long it has been down (in milliseconds) in
+// *held_time when that is not NULL.
+int pad_button_down(int port, int button, int* held_time);
 int pad_button_triggered(int port, int button);
 int pad_button_just_pressed(int port, int button);
 void pad_get_stick(int port, int stick, float* x, float* y, int raw);

@@ -5,10 +5,12 @@
 
 When CodeWarrior doesn't inline a call to an inline function, it emits a copy of the function in
 its own .text section, under a symbol with binding 13 (its "multiply defined" binding). Vtables
-and the statics of inline functions get the same binding. Every object that needs one carries its
-own copy, and the original linker kept just one: the game has a single vector3(float, float, float)
-constructor, at 0x1026F0. GNU ld treats binding 13 as an ordinary global, so it either keeps the
-extra copy, shifting everything linked after it, or stops on a duplicate definition.
+and the statics of inline functions get the same binding, and template instances get the same
+treatment as weak symbols (clamp<int>, kept by the game at the end of gr.cpp). Every object that
+needs one carries its own copy, and the original linker kept just one: the game has a single
+vector3(float, float, float) constructor, at 0x1026F0. GNU ld treats binding 13 as an ordinary
+global and keeps every weak copy's section, so the extra copies shift everything linked after
+them (or stop the link on a duplicate definition).
 
 A copy is dropped when symbol_addrs.txt names it at an address outside the object's unit, whose
 original address ranges follow as START-END arguments. Its symbol becomes an undefined global, so
@@ -29,7 +31,7 @@ SYM = struct.Struct("<IIIBBH")  # Elf32_Sym: name, value, size, info, other, shn
 SHT_SYMTAB = 2
 SHF_WRITE, SHF_ALLOC, SHF_EXECINSTR = 0x1, 0x2, 0x4
 SHN_UNDEF, SHN_LORESERVE = 0, 0xFF00
-STB_GLOBAL, STB_MULTIDEF = 1, 13
+STB_GLOBAL, STB_WEAK, STB_MULTIDEF = 1, 2, 13
 STT_NOTYPE, STT_FUNC = 0, 2
 SYMBOL_LINE = re.compile(r"\s*([^\s=/]+)\s*=\s*(0x[0-9A-Fa-f]+|\d+)\s*;")
 
@@ -102,7 +104,7 @@ def main() -> None:
 
     changed = False
     for i, (st_name, _, st_size, st_info, st_other, st_shndx) in enumerate(symbols):
-        if st_info >> 4 != STB_MULTIDEF or st_shndx == SHN_UNDEF or st_shndx >= SHN_LORESERVE:
+        if st_info >> 4 not in (STB_MULTIDEF, STB_WEAK) or st_shndx == SHN_UNDEF or st_shndx >= SHN_LORESERVE:
             continue
         name = obj.string(strtab, st_name)
         address = game_symbols.get(name)

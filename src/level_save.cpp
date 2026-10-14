@@ -3,8 +3,10 @@
 // flags and ints, the item and click flags, the automap and the movies seen. Ends with the console
 // commands for flags, saves and level meshes.
 #include "game/level_save.h"
+#include "game/bmpman_ngps.h"
 #include "game/console.h"
 #include "game/debug.h"
+#include "game/gr_ngps_texture.h"
 #include "game/matrix.h"
 #include "game/memcard.h"
 #include "game/parse.h"
@@ -609,8 +611,6 @@ void func_00293720(void);
 // Called around storing the game state; both only act in level 0x23.
 void func_002936E0(void);
 void func_00293760(void);
-void* func_00187040(int format, int width, int height, u8* pixels, int a4, int a5, int a6);
-void func_0018C130(void* image);
 void func_0015F8D0(const char* level_name, int a1, int a2);
 int func_001DA710(void);
 BOOL func_0022A2B0(void);
@@ -942,7 +942,7 @@ u8 D_009DEE20[LEVEL_SAVE_MOVIES];
 s16 D_009DEE40[16];
 char D_009DEE60[0x40];
 
-void* D_002D4910;
+int D_002D4910;
 int D_002D4914;
 u8 D_002D4918;
 
@@ -3780,7 +3780,7 @@ void func_001AE7A0(LevelSave* save, const char* name, int port) {
     if (fd != -1) {
         memcard_read(save->buffer, save->header.size + save->thumbnail.size, 1, fd);
         memcard_close(fd);
-        func_0018C130(D_002D4910);
+        gr_ngps_tcache_unload(D_002D4910);
     }
 }
 
@@ -3896,7 +3896,7 @@ done:
 void func_001AECE0(u8* file_buffer, u32 file_buffer_size) {
     D_009B6B50.Init(file_buffer, file_buffer_size);
     D_009B6B50.Reset();
-    D_002D4910 = func_00187040(5, 176, 150, D_009B6B50.GetThumbnail(), 0, 9, 0);
+    D_002D4910 = bm_create(BM_SOURCE_1555, 176, 150, D_009B6B50.GetThumbnail(), NULL, BM_FORMAT_CREATED_16, false);
 }
 
 void func_001AED50(void) {

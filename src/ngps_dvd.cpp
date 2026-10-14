@@ -2,6 +2,9 @@
 // disc and the host, and the helpers that read and index packfile directories.
 #include "game/ngps_dvd.h"
 #include "game/file_packfile.h"
+#include "game/gr.h"
+#include "game/gr_font.h"
+#include "game/unit_00187F80.h"
 #include "game/platform_ngps.h"
 #include "game/timer.h"
 #include "types.h"
@@ -23,16 +26,8 @@ char* func_00250230(const char* string, int c);                                 
 void func_002838B0(void);
 int func_00283940(u8* destination, int destination_size, int* written, u8* source, int source_size, int* consumed);
 void func_002839D0(void);
-// Screen output used by the retry message.
-int func_0018B0F0(void);
-int func_0018B110(void);
-void func_0018AF60(int a, int b, int c, int d, int e, int f, int g);
-void func_00183810(int* width, int* height, const char* text, int a, int b);
-int func_001837B0(int font);
-void func_001839D0(int x, int y, const char* text, int color);
+// Draws the box behind the retry message.
 void func_002002E0(int x, int y, int width, int height, int a);
-void func_0017BD90(int r, int g, int b, int a);
-void func_0017BC10(void);
 }
 
 #define SCECdComplete 2
@@ -95,7 +90,7 @@ void dvd_show_retry_message(void) {
     int dots_width;
     int dots_height;
     int i;
-    int screen;
+    u32 screen;
     int box_width;
     int box_height;
     int box_top;
@@ -105,13 +100,13 @@ void dvd_show_retry_message(void) {
         return;
     }
 
-    screen = func_0018B0F0();
-    func_0018AF60(func_0018B110(), screen, 0x200, 0x200, 0x200, 0x1C0, 0);
+    screen = gr_ngps_back_buffer();
+    gr_ngps_copy_vram(gr_ngps_front_buffer(), screen, 0x200, 0x200, 0x200, 0x1C0, 0);
     char message[64] = "DVD retrying read";
     char dots[32];
-    func_00183810(&width, &height, message, -1, -1);
+    gr_get_string_size(&width, &height, message, -1, -1);
     box_width = width + 20;
-    box_height = func_001837B0(-1) * 2 + 10;
+    box_height = gr_get_font_height(-1) * 2 + 10;
 
     if (timer_get(1000) - Dvd_retry_dot_time > 1000) {
         Dvd_retry_dots = Dvd_retry_dots >= 9 ? 0 : Dvd_retry_dots + 1;
@@ -121,22 +116,22 @@ void dvd_show_retry_message(void) {
     for (i = 0; i < Dvd_retry_dots; i++) {
         ngps_strcat(dots, ".");
     }
-    func_00183810(&dots_width, &dots_height, dots, -1, -1);
+    gr_get_string_size(&dots_width, &dots_height, dots, -1, -1);
 
     box_left = (0x200 - box_width) / 2;
     box_top = (0x1C0 - box_height) / 2;
 
     func_002002E0(box_left, box_top, box_width, box_height, 0);
-    func_0017BD90(0xFF, 0xFF, 0x9E, 0xFF);
-    func_001839D0(0x100 - width / 2, 0xE0 - func_001837B0(-1), message, -1);
-    func_001839D0(0x100 - dots_width / 2, 0xE0, dots, -1);
-    func_0017BC10();
+    gr_set_color(0xFF, 0xFF, 0x9E, 0xFF);
+    gr_string(0x100 - width / 2, 0xE0 - gr_get_font_height(-1), message, -1);
+    gr_string(0x100 - dots_width / 2, 0xE0, dots, -1);
+    gr_flip();
 
     func_002002E0(box_left, box_top, box_width, box_height, 0);
-    func_0017BD90(0xFF, 0xFF, 0x9E, 0xFF);
-    func_001839D0(0x100 - width / 2, 0xE0 - func_001837B0(-1), message, -1);
-    func_001839D0(0x100 - dots_width / 2, 0xE0, dots, -1);
-    func_0017BC10();
+    gr_set_color(0xFF, 0xFF, 0x9E, 0xFF);
+    gr_string(0x100 - width / 2, 0xE0 - gr_get_font_height(-1), message, -1);
+    gr_string(0x100 - dots_width / 2, 0xE0, dots, -1);
+    gr_flip();
 }
 
 // Waits for the disc to be ready, then starts reading sectors into buffer.

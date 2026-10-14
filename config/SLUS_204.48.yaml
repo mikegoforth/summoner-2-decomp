@@ -25,6 +25,7 @@ options:
 
   symbol_addrs_path:
     - config/symbol_addrs.txt
+  reloc_addrs_path: config/reloc_addrs.txt
   undefined_funcs_auto_path: config/undefined_funcs_auto.txt
   undefined_syms_auto_path: config/undefined_syms_auto.txt
 
@@ -58,7 +59,21 @@ segments:
     subsegments:
       # ---- .text 0x00100000: game code (MWCC C++) + Sony SDK 2.4 libraries ----
       - [0x000000, asm, text_00100000]
-      - [0x08F070, asm, unit_0018F070]
+      - [0x07A830, asm, unit_0017A830]
+      - [0x07B550, asm, gr]
+      - [0x07CEB0, asm, unit_0017CEB0]
+      - [0x080370, asm, unit_00180370]
+      - [0x080B40, asm, unit_00180B40]
+      - [0x080B70, asm, unit_00180B70]
+      - [0x082180, asm, unit_00182180]
+      - [0x083200, asm, gr_font]
+      - [0x0843A0, asm, unit_001843A0]
+      - [0x085730, asm, bmpman_ngps]
+      - [0x087F80, asm, unit_00187F80]
+      - [0x08B440, asm, gr_ngps_texture]
+      - [0x08DB80, asm, unit_0018DB80]
+      - [0x08E1D0, asm, unit_0018E1D0]
+      - [0x08E460, asm, unit_0018F070]
       - [0x090720, asm, unit_00190720]
       - [0x0933B0, asm, matrix]
       - [0x094A80, asm, unit_00194A80]
@@ -92,6 +107,8 @@ segments:
       - [0x1A3380, bin, vutext]
       # ---- 0x002A8300 .data (also holds libkernel's kseg0 patch code at 0x2ABA80) ----
       - [0x1A8300, data, data_002A8300]
+      - [0x1A9B20, data, unit_00187F80]
+      - [0x1A9B40, data, gr_ngps_texture]
       - [0x1A9B50, data, unit_00190720]
       - [0x1A9B68, data, data_002A9B68]
       - [0x1A9B70, data, matrix]
@@ -106,6 +123,11 @@ segments:
       - [0x1A9F70, data, data_002A9F70]
       # ---- 0x002B3100 .rodata (start is a guess from the first jump table) ----
       - { start: 0x1B3100, type: rodata, name: rodata_002B3100, linker_section_order: .data }
+      - { start: 0x1B93F0, type: rodata, name: gr, linker_section_order: .data }
+      - { start: 0x1B9428, type: rodata, name: gr_font, linker_section_order: .data }
+      - { start: 0x1B9480, type: rodata, name: unit_001843A0, linker_section_order: .data }
+      - { start: 0x1B94A8, type: rodata, name: bmpman_ngps, linker_section_order: .data }
+      - { start: 0x1B95A0, type: rodata, name: gr_ngps_texture, linker_section_order: .data }
       - { start: 0x1B9610, type: rodata, name: unit_0018F070, linker_section_order: .data }
       - { start: 0x1B9690, type: rodata, name: unit_00190720, linker_section_order: .data }
       - { start: 0x1B96B0, type: rodata, name: matrix, linker_section_order: .data }
@@ -132,8 +154,14 @@ segments:
       - [0x1D39D0, data, ctors]
       # ---- 0x002D3D00 .sdata (_gp = 0x2D3D00 + 0x7FF0) ----
       - { start: 0x1D3D00, type: sdata, name: sdata_002D3D00, linker_section_order: .data }
+      - { start: 0x1D3ED0, type: sdata, name: gr, linker_section_order: .data }
+      - { start: 0x1D3ED8, type: sdata, name: unit_0017CEB0, linker_section_order: .data }
+      - { start: 0x1D3EE0, type: sdata, name: unit_00180B40, linker_section_order: .data }
+      - { start: 0x1D3EEC, type: sdata, name: unit_001843A0, linker_section_order: .data }
+      - { start: 0x1D3EF4, type: sdata, name: bmpman_ngps, linker_section_order: .data }
+      - { start: 0x1D3EFC, type: sdata, name: unit_00187F80, linker_section_order: .data }
+      - { start: 0x1D3F00, type: sdata, name: unit_0018DB80, linker_section_order: .data }
       - { start: 0x1D3F04, type: sdata, name: unit_0018F070, linker_section_order: .data }
-      - { start: 0x1D3F14, type: sdata, name: sdata_002D3F14, linker_section_order: .data }
       - { start: 0x1D3F20, type: sdata, name: unit_00190720, linker_section_order: .data }
       - { start: 0x1D3F30, type: sdata, name: unit_00194A80, linker_section_order: .data }
       - { start: 0x1D3F34, type: sdata, name: console, linker_section_order: .data }
@@ -145,6 +173,19 @@ segments:
       - { start: 0x1D3F74, type: sdata, name: sdata_002D3F74, linker_section_order: .data }
       # ---- 0x002D4200 .sbss/.bss (includes a large static heap) up to _end = 0x018E0300 ----
       - { start: 0x1D4200, type: bss, vram: 0x002D4200, name: bss_002D4200 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4660, name: gr, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D46B8, name: unit_0017CEB0, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D4704, name: bss_002D4704 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4708, name: unit_00180370, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D470C, name: gr_font, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4720, name: unit_001843A0, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4758, name: bmpman_ngps, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4768, name: unit_00187F80, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4778, name: gr_ngps_texture, linker_section_order: .bss }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4788, name: unit_0018DB80, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D4791, name: bss_002D4791 }
+      - { start: 0x1D4200, type: sbss, vram: 0x002D4794, name: unit_0018E1D0, linker_section_order: .bss }
+      - { start: 0x1D4200, type: bss, vram: 0x002D47CD, name: bss_002D47CD }
       - { start: 0x1D4200, type: sbss, vram: 0x002D47D0, name: unit_0018F070, linker_section_order: .bss }
       - { start: 0x1D4200, type: bss, vram: 0x002D47E6, name: bss_002D47E6 }
       - { start: 0x1D4200, type: sbss, vram: 0x002D47E8, name: unit_00190720, linker_section_order: .bss }
@@ -169,6 +210,22 @@ segments:
       - { start: 0x1D4200, type: bss, vram: 0x002D4984, name: bss_002D4984 }
       - { start: 0x1D4200, type: bss, vram: 0x007C2F80, name: memory }
       - { start: 0x1D4200, type: bss, vram: 0x00809F80, name: bss_00809F80 }
+      - { start: 0x1D4200, type: bss, vram: 0x008851D0, name: gr }
+      - { start: 0x1D4200, type: bss, vram: 0x00885A60, name: unit_0017CEB0 }
+      - { start: 0x1D4200, type: bss, vram: 0x00886350, name: bss_00886350 }
+      - { start: 0x1D4200, type: bss, vram: 0x00891ED0, name: unit_00180370 }
+      - { start: 0x1D4200, type: bss, vram: 0x008928D0, name: unit_00180B40 }
+      - { start: 0x1D4200, type: bss, vram: 0x0089D190, name: unit_00180B70 }
+      - { start: 0x1D4200, type: bss, vram: 0x0089D1B0, name: gr_font }
+      - { start: 0x1D4200, type: bss, vram: 0x0089D268, name: bss_0089D268 }
+      - { start: 0x1D4200, type: bss, vram: 0x0089D270, name: unit_001843A0 }
+      - { start: 0x1D4200, type: bss, vram: 0x008C0130, name: bmpman_ngps }
+      - { start: 0x1D4200, type: bss, vram: 0x0090B5E4, name: bss_0090B5E4 }
+      - { start: 0x1D4200, type: bss, vram: 0x0090B5F0, name: unit_00187F80 }
+      - { start: 0x1D4200, type: bss, vram: 0x0090BE60, name: gr_ngps_texture }
+      - { start: 0x1D4200, type: bss, vram: 0x0091E6C0, name: unit_0018DB80 }
+      - { start: 0x1D4200, type: bss, vram: 0x0091E71C, name: bss_0091E71C }
+      - { start: 0x1D4200, type: bss, vram: 0x0091E720, name: unit_0018E1D0 }
       - { start: 0x1D4200, type: bss, vram: 0x0091E780, name: unit_0018F070 }
       - { start: 0x1D4200, type: bss, vram: 0x0091F700, name: unit_00190720 }
       - { start: 0x1D4200, type: bss, vram: 0x00921C2C, name: bss_00921C2C }

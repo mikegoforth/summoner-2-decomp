@@ -62,13 +62,17 @@ Three things separate the builds:
   CodeWarrior already aligns to 8 or 16, as the game has them.
 - **Out-of-line copies of inline functions.** A call CodeWarrior doesn't inline goes to a copy of
   the function, which every object that needs one emits in its own `.text` section under symbol
-  binding 13 (vtables and the statics of inline functions get the same binding). The original
-  linker kept one copy (`vector3::vector3(float, float, float)` at `0x1026F0`); GNU ld keeps them
-  all, shifting the code after them. `tools/drop_inline_copies.py` drops a copy that
-  `config/symbol_addrs.txt` names outside the object's unit: the symbol becomes a reference to the
-  game's copy and the section becomes `.discard.text`, which the linker script discards. Copies the
-  unit holds itself (`PadPort::PadPort()` at `0x190710`) or that aren't named yet stay, so name
-  the game's copy before linking a unit that carries one.
+  binding 13 (vtables and the statics of inline functions get the same binding). Template
+  instances are emitted the same way as weak symbols (`clamp<int>`, which the game keeps at the
+  end of `gr.cpp`, at `0x17CE80`). The original linker kept one copy
+  (`vector3::vector3(float, float, float)` at `0x1026F0`); GNU ld keeps them all, shifting the
+  code after them. `tools/drop_inline_copies.py` drops a copy that `config/symbol_addrs.txt`
+  names outside the object's unit: the symbol becomes a reference to the game's copy and the
+  section becomes `.discard.text`, which the linker script discards. Copies the unit holds itself
+  (`PadPort::PadPort()` at `0x190710`) or that aren't named yet stay, so name the game's copy
+  before linking a unit that carries one. Names with `<` and `>` work: splat wants a `filename:`
+  attribute for them in `config/symbol_addrs.txt` (`filename:clamp_i__FRiii`), writes them
+  quoted (`glabel "clamp<i>__FRiii"`, `jal "clamp<i>__FRiii"`), and the assembler accepts that.
 - **Static initializers** (`__sinit_<file>_cpp`) go to `.init`, with a pointer in `.ctor`. In
   the executable these sit together after `.rodata` (`0x2CF680` and `0x2D39D0`), not next to
   their file's code. They aren't split per file yet, so a variable that only a static

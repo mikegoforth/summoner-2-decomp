@@ -67,12 +67,16 @@ Matching = "Matching"
 NonMatching = "NonMatching"
 
 UNIT_STATUS = {
+    "bmpman_ngps": NonMatching,  # static initializer still in the shared .init assembly
     # console.cpp: its static initializer is still in the shared .init assembly, which refers to
     # this file's string literals by address, so it can only be linked once .init is split.
     "console": NonMatching,
     "debug": Matching,
     "file_packfile": Matching,
     "frametime": Matching,
+    "gr": NonMatching,  # static initializer still in the shared .init assembly
+    "gr_font": NonMatching,  # 11/12 functions match
+    "gr_ngps_texture": NonMatching,  # 40/43 functions match
     "level_save": NonMatching,  # static initializer still in the shared .init assembly
     "level_scripts": NonMatching,  # static initializer still in the shared .init assembly
     "matrix": NonMatching,  # static initializer still in the shared .init assembly
@@ -88,6 +92,16 @@ UNIT_STATUS = {
     "stringpool": Matching,
     "timer": Matching,
     "timestamp": Matching,
+    "unit_0017A830": Matching,
+    "unit_0017CEB0": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00180370": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00180B40": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00180B70": Matching,
+    "unit_00182180": Matching,
+    "unit_001843A0": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00187F80": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_0018DB80": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_0018E1D0": NonMatching,  # static initializer still in the shared .init assembly
     "unit_0018F070": NonMatching,  # static initializer still in the shared .init assembly
     "unit_00190720": Matching,
     "unit_00194A80": Matching,

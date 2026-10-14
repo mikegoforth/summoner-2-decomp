@@ -26,11 +26,16 @@ Build setup is in the [README](README.md); compiler details are in [docs/compile
    placeholder units around them. Keep every piece in address order. `.rodata` and `.sdata`
    pieces need `linker_section_order: .data`, and `.sbss` pieces need
    `linker_section_order: .bss`; without these splat regroups sections by type and the layout
-   breaks.
+   breaks. `.data` and `.sdata` pieces must start and end on a 4-byte boundary (splat drops a
+   partial word at the end of a piece), so a unit whose data ends mid-word takes the padding
+   after it.
 3. **Name symbols** in `config/symbol_addrs.txt`. Functions use their CodeWarrior-mangled
    names (`allocate_in_mempool__FP7MempoolUi`); global variables are not mangled. Functions
    whose real name is still unknown keep splat's `func_XXXXXXXX` name and are declared
-   `extern "C"` in C++ until someone names them.
+   `extern "C"` in C++ until someone names them. Where splat takes a constant for an address
+   (`chain | 0x20000000`, the uncached mirror of main memory, in `gr_ngps_texture.cpp`), a
+   `reloc:MIPS_NONE` line in `config/reloc_addrs.txt` keeps the instruction's immediate a plain
+   number, as the compiled code has it.
 4. **Write the C++** in `src/<unit>.cpp`, then run `.venv/bin/python configure.py` and
    `.venv/bin/ninja`. Use the objdiff GUI (open this folder) to see per-instruction differences.
 5. **Mark it `Matching`** in `configure.py` once every function matches and `ninja` still

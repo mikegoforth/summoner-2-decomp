@@ -269,8 +269,8 @@ extern u8 D_009DEE20[LEVEL_SAVE_MOVIES];
 extern s16 D_009DEE40[16];
 extern char D_009DEE60[0x40];
 
-// Image made from the save's thumbnail section.
-extern void* D_002D4910;
+// Bitmap made from the save's thumbnail section.
+extern int D_002D4910;
 extern int D_002D4914;
 // Set while a script forbids saving.
 extern u8 D_002D4918;

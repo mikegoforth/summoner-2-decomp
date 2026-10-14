@@ -1,6 +1,7 @@
 // Meshes in the .vim format, drawn through VIF1 by the VU1 mesh microprograms: loading and
 // relocating the files, dummy lookups, and microprogram helpers.
 #include "game/vif_mesh.h"
+#include "game/bmpman_ngps.h"
 #include "game/debug.h"
 #include "game/file_packfile.h"
 #include "game/memory.h"
@@ -8,12 +9,6 @@
 #include "game/platform_ngps.h"
 #include "macros.h"
 #include <stdio.h>
-
-extern "C" {
-// Looks up a texture by name in texture group `group` (-1: any). Returns its handle, or the
-// fallback handle (-1 unless one has been set) if it isn't found.
-int func_00186F40(const char* name, int unknown, int group);
-}
 
 // VU1 micro memory address of the mesh microprogram, set when the microprograms are loaded.
 extern u32 D_00926590[4];
@@ -39,7 +34,7 @@ VifMesh* func_0019B730(void* data, int group) {
         return NULL;
     }
     for (i = 0; i < mesh->num_textures; i++) {
-        handle = func_00186F40(mesh->texture_names[i], -1, group);
+        handle = bm_load(mesh->texture_names[i], -1, group);
         mesh->texture_handles[i] = handle;
         if (handle <= 0) {
             sprintf(string_buffer, "Can't find texture for vim:\n%s", mesh->texture_names[i]);

@@ -1,5 +1,6 @@
 #include "game/level_scripts.h"
 #include "game/debug.h"
+#include "game/gr.h"
 #include "game/memory.h"
 #include "game/platform_ngps.h"
 #include "game/unit_00190720.h"
@@ -188,9 +189,6 @@ extern "C" void func_0015F640(int a);
 extern "C" void func_001697D0(void* model, int a1, float f12);
 extern "C" void func_0016A8F0(void* model);
 extern "C" void func_0016A940(void* model);
-extern "C" void func_0017B790(int a);
-extern "C" float func_0017B830(void);
-extern "C" int func_0017B980(void);
 extern "C" int func_001ADA90(void* flags, int flag);
 extern "C" int func_001D7C50(int sound, const vector3* position, const vector3* velocity, int mask, float radius);
 extern "C" void func_001D7F80(int handle, const vector3* position, const vector3* velocity);
@@ -633,7 +631,7 @@ void func_001B0E70(void) {
     if (D_002D4958) {
         // A load spline was crossed; once the fade has finished, go to the new level or the world map.
         if (D_002D4968) {
-            if (func_0017B830() == 1.0f) {
+            if (gr_get_fade() == 1.0f) {
                 D_002D4534 &= ~0x4000;
                 if (D_002D4964) {
                     func_001FEF60(0x11, 0);
@@ -648,11 +646,11 @@ void func_001B0E70(void) {
                         func_0015F640(3);
                     }
                 }
-            } else if (func_0017B980()) {
+            } else if (gr_is_fading()) {
                 D_002D4534 |= 0x4000;
             } else {
                 D_002D4534 |= 0x4000;
-                func_0017B790(1500);
+                gr_fade_out(1500);
             }
         }
         return;

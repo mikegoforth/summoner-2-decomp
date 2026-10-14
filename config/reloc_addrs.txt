@@ -1,0 +1,11 @@
+// Relocations splat should use instead of the ones it works out (rom: file offset of the instruction).
+// MIPS_NONE keeps an immediate as a plain number where the disassembler would take a constant for
+// an address.
+
+// gr_ngps_build_tile_chain: the DMA chain is written through the uncached mirror of main memory
+// (chain | 0x20000000), so the lui and the offsets from it are not a symbol.
+rom:0x8C798 reloc:MIPS_NONE symbol:none
+rom:0x8C7B4 reloc:MIPS_NONE symbol:none
+rom:0x8C81C reloc:MIPS_NONE symbol:none
+rom:0x8C824 reloc:MIPS_NONE symbol:none
+rom:0x8C834 reloc:MIPS_NONE symbol:none
