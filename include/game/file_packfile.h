@@ -37,6 +37,7 @@
 #define COND_PACKFILE_ADDED  1 // header read, buffer not loaded yet
 #define COND_PACKFILE_LOADED 2
 
+struct DVDFile;
 struct NGPS_FILE;
 struct Packfile;
 
@@ -49,8 +50,9 @@ struct PackfileEntry {
     /* 0x10 */ int compressed_size;
     /* 0x14 */ Packfile* packfile;
     /* 0x18 */ union {
-        void* handle;   // open DVD or hard disk file
-        NGPS_FILE* file; // open host file
+        void* handle;      // open hard disk file
+        DVDFile* dvd_file; // open disc file
+        NGPS_FILE* file;   // open host file
     };
 };
 
@@ -78,6 +80,28 @@ struct PackfileLookup {
     /* 0x00 */ u32 hash;
     /* 0x04 */ PackfileEntry* entry;
 };
+
+// Directory helpers, defined at the end of ngps_dvd.cpp.
+
+// Case-insensitive name hash used by Packfile_lookup.
+u32 packfile_hash(const char* name);
+void packfile_fix_names(Packfile* packfile);
+// Read size bytes of a packfile; the reads are made in whole sectors.
+void packfile_read_host(void* destination, int size, NGPS_FILE* file);
+void packfile_read_hdd(void* destination, int size, void* file);
+void packfile_read_dvd(void* destination, int size, DVDFile* file);
+int packfile_data_start(Packfile* packfile);
+void packfile_assign_offsets(Packfile* packfile);
+// Fixes up a freshly read directory and, for regular packfiles, adds its files to Packfile_lookup.
+void packfile_register(Packfile* packfile);
+// Splits filename at its last backslash into name and path (path keeps the backslash).
+void split_path(const char* filename, char* name, char* path);
+// Returns a PACKFILE_LOCATION and, for a packfile on the disc, its first sector.
+int packfile_locate(const char* filename, int* sector);
+// Checks a header sector and copies the description in. Returns the number of files, 0 if invalid.
+int packfile_read_header(Packfile* packfile, u8* header);
+
+// Defined in file_packfile.cpp.
 
 void* packfile_alloc_directory(Packfile* packfile);
 BOOL packfile_read_cond_header_host(Packfile* packfile, int* data_size);
@@ -117,5 +141,16 @@ extern bool Summoner_vpp_loaded;
 extern int Num_cond_packfiles;
 extern BOOL Packfiles_locked;             // packfile_add fails while set; nothing sets it
 extern bool Cond_packfiles_in_main_pool; // read by packfile_alloc_directory; nothing sets it
+
+extern "C" {
+// Files on the hard disk (pfs0:).
+void* func_0025DD90(const char* filename, const char* mode);   // open
+int func_0025DF40(void* file, int offset, int origin);         // seek
+int func_0025E050(void* file, u8* buffer, int size);           // read
+int func_0025E0F0(void* file, u8* buffer, int size);           // start an asynchronous read
+void func_0025E180(void* file);                                // close
+int func_0025E290(void* file, u8* buffer, int size);           // read and decompress
+BOOL func_0025E550(const char* filename);                      // file exists
+}
 
 #endif // GAME_FILE_PACKFILE_H

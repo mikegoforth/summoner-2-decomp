@@ -1,43 +1,15 @@
 // Packfiles: the .vpp archives the game's files are read from, on the disc, the hard disk or the host.
-// Only the asserts name this file; the function names are descriptive guesses.
+// The helpers that read and index a packfile's directory come just before this file, at the end of
+// ngps_dvd.cpp.
 #include "game/file_packfile.h"
 #include "game/debug.h"
 #include "game/memory.h"
+#include "game/ngps_dvd.h"
 #include "game/ngps_file.h"
 #include "game/platform_ngps.h"
 #include "macros.h"
 #include <stdio.h>
 #include <string.h>
-
-extern "C" {
-// TODO: name these once their units are split.
-// ngps_dvd.cpp: files on the disc, opened by sector.
-void* func_001A3460(int sector, int size); // open
-int func_001A3570(void* file, int offset); // seek
-int func_001A36C0(void* file, u8* buffer, int size); // read
-int func_001A3780(void* file, u8* buffer, int size); // read and decompress
-int func_001A3A40(void* file, u8* buffer, int size); // start an asynchronous read
-void func_001A3B10(void* file); // close
-int func_001A2E50(void* file); // status of the last request, 0 while busy
-// Reads size bytes of compressed data from a host file and decompresses them into buffer.
-void func_001A3BD0(u8* buffer, int size, NGPS_FILE* file);
-// Hard disk files (pfs0:).
-void* func_0025DD90(const char* filename, const char* mode); // open
-int func_0025DF40(void* file, int offset, int origin); // seek
-int func_0025E050(void* file, u8* buffer, int size); // read
-int func_0025E0F0(void* file, u8* buffer, int size); // start an asynchronous read
-void func_0025E180(void* file); // close
-int func_0025E290(void* file, u8* buffer, int size); // read and decompress
-// Earlier in this file.
-u32 func_001A3E40(const char* name); // name hash, case-insensitive
-void func_001A3F00(void* destination, int size, NGPS_FILE* file); // read size bytes in whole sectors
-void func_001A3FA0(void* destination, int size, void* file); // same, from the hard disk
-void func_001A4040(void* destination, int size, void* file); // same, from the disc
-void func_001A41D0(Packfile* packfile); // fixes up the directory and fills Packfile_lookup
-void func_001A42B0(const char* filename, char* name, char* path); // splits off the directory
-int func_001A4370(const char* filename, int* sector); // PACKFILE_LOCATION_*, and the disc sector
-BOOL func_001A4500(Packfile* packfile, u8* header); // checks the header sector and copies it in
-}
 
 PackfileLookup Packfile_lookup[MAX_PACKFILE_ENTRIES];
 Packfile Packfiles[MAX_PACKFILES];
@@ -99,7 +71,7 @@ BOOL packfile_read_cond_header_host(Packfile* packfile, int* data_size) {
     }
     packfile->flags |= PACKFILE_HOST;
     ngps_fread(header, PACKFILE_SECTOR_SIZE, 1, file);
-    if (!func_001A4500(packfile, header)) {
+    if (!packfile_read_header(packfile, header)) {
         ngps_fclose(file);
         return FALSE;
     }
@@ -123,7 +95,7 @@ BOOL packfile_read_cond_header_hdd(Packfile* packfile, int* data_size) {
     }
     packfile->flags |= PACKFILE_HDD;
     func_0025E050(file, header, PACKFILE_SECTOR_SIZE);
-    if (!func_001A4500(packfile, header)) {
+    if (!packfile_read_header(packfile, header)) {
         func_0025E180(file);
         return FALSE;
     }
@@ -133,7 +105,7 @@ BOOL packfile_read_cond_header_hdd(Packfile* packfile, int* data_size) {
 }
 
 BOOL packfile_read_cond_header_dvd(Packfile* packfile, int* data_size) {
-    void* file;
+    DVDFile* file;
     u8 header[PACKFILE_SECTOR_SIZE];
 
     if (Cond_packfile_state[Num_cond_packfiles]) {
@@ -142,48 +114,48 @@ BOOL packfile_read_cond_header_dvd(Packfile* packfile, int* data_size) {
     if (packfile->sector == -1) {
         return FALSE;
     }
-    file = func_001A3460(packfile->sector, -1);
+    file = dvd_open(packfile->sector, -1);
     if (file == NULL) {
         return FALSE;
     }
     packfile->flags |= PACKFILE_DVD;
-    func_001A36C0(file, header, PACKFILE_SECTOR_SIZE);
-    if (!func_001A4500(packfile, header)) {
-        func_001A3B10(file);
+    dvd_read(file, header, PACKFILE_SECTOR_SIZE);
+    if (!packfile_read_header(packfile, header)) {
+        dvd_close(file);
         return FALSE;
     }
-    func_001A3B10(file);
+    dvd_close(file);
     *data_size = packfile->data_size;
     return TRUE;
 }
 
 // Reads a regular packfile's header, directory and names.
 BOOL packfile_load_dvd(Packfile* packfile) {
-    void* file;
+    DVDFile* file;
     u8 header[PACKFILE_SECTOR_SIZE];
 
     if (packfile->sector == -1) {
         return FALSE;
     }
-    file = func_001A3460(packfile->sector, -1);
+    file = dvd_open(packfile->sector, -1);
     if (file == NULL) {
         return FALSE;
     }
     packfile->flags |= PACKFILE_DVD;
-    func_001A36C0(file, header, PACKFILE_SECTOR_SIZE);
-    if (!func_001A4500(packfile, header)) {
-        func_001A3B10(file);
+    dvd_read(file, header, PACKFILE_SECTOR_SIZE);
+    if (!packfile_read_header(packfile, header)) {
+        dvd_close(file);
         return FALSE;
     }
     if (!packfile_alloc_directory(packfile)) {
-        func_001A3B10(file);
+        dvd_close(file);
         DEBUGERRORLINE(1115, "Cannot allocate enough space for all files in the game!\n");
         return FALSE;
     }
-    func_001A4040(packfile->entries, packfile->directory_size, file);
-    func_001A4040(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
-    func_001A3B10(file);
+    packfile_read_dvd(packfile->entries, packfile->directory_size, file);
+    packfile_read_dvd(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
+    dvd_close(file);
     return TRUE;
 }
 
@@ -198,7 +170,7 @@ BOOL packfile_load_hdd(Packfile* packfile) {
     }
     packfile->flags |= PACKFILE_HDD;
     func_0025E050(file, header, PACKFILE_SECTOR_SIZE);
-    if (!func_001A4500(packfile, header)) {
+    if (!packfile_read_header(packfile, header)) {
         func_0025E180(file);
         return FALSE;
     }
@@ -207,9 +179,9 @@ BOOL packfile_load_hdd(Packfile* packfile) {
         DEBUGERRORLINE(1171, "Cannot allocate enough space for all files in the game!\n");
         return FALSE;
     }
-    func_001A3FA0(packfile->entries, packfile->directory_size, file);
-    func_001A3FA0(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
+    packfile_read_hdd(packfile->entries, packfile->directory_size, file);
+    packfile_read_hdd(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
     func_0025E180(file);
     return TRUE;
 }
@@ -226,7 +198,7 @@ BOOL packfile_load_host(Packfile* packfile) {
     }
     packfile->flags = PACKFILE_HOST;
     ngps_fread(header, PACKFILE_SECTOR_SIZE, 1, file);
-    if (!func_001A4500(packfile, header)) {
+    if (!packfile_read_header(packfile, header)) {
         ngps_fclose(file);
         return FALSE;
     }
@@ -234,9 +206,9 @@ BOOL packfile_load_host(Packfile* packfile) {
         ngps_fclose(file);
         return FALSE;
     }
-    func_001A3F00(packfile->entries, packfile->directory_size, file);
-    func_001A3F00(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
+    packfile_read_host(packfile->entries, packfile->directory_size, file);
+    packfile_read_host(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
     ngps_fclose(file);
     return TRUE;
 }
@@ -276,7 +248,7 @@ PackfileEntry* packfile_find(const char* filename) {
     char name[64];
 
     strip_path(name, filename);
-    hash = func_001A3E40(name);
+    hash = packfile_hash(name);
     for (i = Num_packfile_entries - 1; i >= 0; i--) {
         lookup = &Packfile_lookup[i];
         if (hash == lookup->hash) {
@@ -304,11 +276,11 @@ BOOL packfile_add(const char* filename) {
     if (Num_packfiles >= MAX_PACKFILES) {
         return FALSE;
     }
-    location = func_001A4370(filename, &sector);
+    location = packfile_locate(filename, &sector);
     if (location == PACKFILE_LOCATION_NONE) {
         return FALSE;
     }
-    func_001A42B0(filename, name, path);
+    split_path(filename, name, path);
     packfile = &Packfiles[Num_packfiles++];
     strncpy(packfile->name, name, 12);
     strncpy(packfile->path, path, 30);
@@ -338,11 +310,11 @@ BOOL packfile_add_cond(const char* filename, int* data_size) {
     if (Cond_packfile_state[Num_cond_packfiles]) {
         return FALSE;
     }
-    location = func_001A4370(filename, &sector);
+    location = packfile_locate(filename, &sector);
     if (location == PACKFILE_LOCATION_NONE) {
         return FALSE;
     }
-    func_001A42B0(filename, name, path);
+    split_path(filename, name, path);
     packfile = &Cond_packfiles[Num_cond_packfiles];
     strncpy(packfile->name, name, 12);
     strncpy(packfile->path, path, 30);
@@ -378,8 +350,8 @@ BOOL packfile_fopen(PackfileEntry* entry) {
         return FALSE;
     }
     if (entry->packfile->flags & PACKFILE_DVD) {
-        entry->handle = func_001A3460(entry->offset + entry->packfile->sector, entry->size);
-        return entry->handle != NULL;
+        entry->dvd_file = dvd_open(entry->offset + entry->packfile->sector, entry->size);
+        return entry->dvd_file != NULL;
     }
     if (entry->packfile->flags & PACKFILE_HDD) {
         sprintf(filename, "%s%s", entry->packfile->path, entry->packfile->name);
@@ -404,8 +376,8 @@ void packfile_fclose(PackfileEntry* entry) {
         return;
     }
     if (entry->packfile->flags & PACKFILE_DVD) {
-        func_001A3B10(entry->handle);
-        entry->handle = NULL;
+        dvd_close(entry->dvd_file);
+        entry->dvd_file = NULL;
     } else if (entry->packfile->flags & PACKFILE_HDD) {
         func_0025E180(entry->handle);
         entry->handle = NULL;
@@ -421,7 +393,7 @@ int packfile_fseek(PackfileEntry* entry, int offset, int origin) {
         return 0;
     }
     if (entry->packfile->flags & PACKFILE_DVD) {
-        return func_001A3570(entry->handle, offset);
+        return dvd_seek(entry->dvd_file, offset);
     }
     if (entry->packfile->flags & PACKFILE_HDD) {
         return func_0025DF40(entry->handle, offset + entry->offset * PACKFILE_SECTOR_SIZE, origin);
@@ -438,9 +410,9 @@ int packfile_fread(void* buffer, int size, int count, PackfileEntry* entry, bool
     }
     if (entry->packfile->flags & PACKFILE_DVD) {
         if (async) {
-            return func_001A3A40(entry->handle, (u8*)buffer, size * count);
+            return dvd_read_async(entry->dvd_file, (u8*)buffer, size * count);
         } else {
-            return func_001A36C0(entry->handle, (u8*)buffer, size * count);
+            return dvd_read(entry->dvd_file, (u8*)buffer, size * count);
         }
     }
     if (entry->packfile->flags & PACKFILE_HDD) {
@@ -457,8 +429,8 @@ int packfile_fread(void* buffer, int size, int count, PackfileEntry* entry, bool
 }
 
 int packfile_fstatus(PackfileEntry* entry) {
-    if (entry->handle != NULL) {
-        return func_001A2E50(entry->handle);
+    if (entry->dvd_file != NULL) {
+        return dvd_file_idle(entry->dvd_file);
     }
     return -1;
 }
@@ -485,11 +457,11 @@ BOOL packfile_load_cond_host(Packfile* packfile) {
         DEBUGERRORLINE(1793, "Cannot allocate enough space for all files in the game!\n");
         return FALSE;
     }
-    func_001A3F00(packfile->entries, packfile->directory_size, file);
-    func_001A3F00(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
+    packfile_read_host(packfile->entries, packfile->directory_size, file);
+    packfile_read_host(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
     if (packfile->compressed_size != -1) {
-        func_001A3BD0(packfile->data, packfile->compressed_size, file);
+        ngps_read_compressed(packfile->data, packfile->compressed_size, file);
     } else {
         ngps_fread(packfile->data, packfile->data_size, 1, file);
     }
@@ -513,9 +485,9 @@ BOOL packfile_load_cond_hdd(Packfile* packfile) {
         DEBUGERRORLINE(1841, "Cannot allocate enough space for all files in the game!\n");
         return FALSE;
     }
-    func_001A3FA0(packfile->entries, packfile->directory_size, file);
-    func_001A3FA0(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
+    packfile_read_hdd(packfile->entries, packfile->directory_size, file);
+    packfile_read_hdd(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
     if (packfile->compressed_size != -1) {
         func_0025E290(file, packfile->data, packfile->compressed_size);
     } else {
@@ -527,26 +499,26 @@ BOOL packfile_load_cond_hdd(Packfile* packfile) {
 }
 
 BOOL packfile_load_cond_dvd(Packfile* packfile) {
-    void* file;
+    DVDFile* file;
 
-    file = func_001A3460(packfile->sector + 1, -1);
+    file = dvd_open(packfile->sector + 1, -1);
     if (file == NULL) {
         return FALSE;
     }
     if (!packfile_alloc_directory(packfile)) {
-        func_001A3B10(file);
+        dvd_close(file);
         DEBUGERRORLINE(1884, "Cannot allocate enough space for all files in the game!\n");
         return FALSE;
     }
-    func_001A4040(packfile->entries, packfile->directory_size, file);
-    func_001A4040(packfile->names, packfile->names_size, file);
-    func_001A41D0(packfile);
+    packfile_read_dvd(packfile->entries, packfile->directory_size, file);
+    packfile_read_dvd(packfile->names, packfile->names_size, file);
+    packfile_register(packfile);
     if (packfile->compressed_size != -1) {
-        func_001A3780(file, packfile->data, packfile->compressed_size);
+        dvd_read_compressed(file, packfile->data, packfile->compressed_size);
     } else {
-        func_001A36C0(file, packfile->data, packfile->data_size);
+        dvd_read(file, packfile->data, packfile->data_size);
     }
-    func_001A3B10(file);
+    dvd_close(file);
     Cond_packfile_state[Num_cond_packfiles - 1] = COND_PACKFILE_LOADED;
     return TRUE;
 }
@@ -562,7 +534,7 @@ BOOL packfile_load_cond(const char* filename) {
     packfile = &Cond_packfiles[Num_cond_packfiles - 1];
     // The split name and path are not used.
     if (filename) {
-        func_001A42B0(filename, name, path);
+        split_path(filename, name, path);
     }
     if (packfile->flags & PACKFILE_DVD) {
         return packfile_load_cond_dvd(packfile);
@@ -607,10 +579,11 @@ u8* packfile_find_cond(const char* filename, int* size) {
     if (Cond_packfile_state[0] != COND_PACKFILE_LOADED) {
         return NULL;
     }
-    hash = func_001A3E40(filename);
+    hash = packfile_hash(filename);
     for (i = 0; i < Num_cond_packfiles; i++) {
         for (j = 0; j < Cond_packfiles[i].num_files; j++) {
-            if (hash == Cond_packfiles[i].entries[j].hash && ngps_stricmp(filename, Cond_packfiles[i].entries[j].name) == 0) {
+            if (hash == Cond_packfiles[i].entries[j].hash &&
+                ngps_stricmp(filename, Cond_packfiles[i].entries[j].name) == 0) {
                 *size = Cond_packfiles[i].entries[j].size;
                 return Cond_packfiles[i].data + Cond_packfiles[i].entries[j].offset;
             }
@@ -625,10 +598,11 @@ void packfile_set_cond_data(const char* filename, u8* data) {
     int j;
     u32 hash;
 
-    hash = func_001A3E40(filename);
+    hash = packfile_hash(filename);
     for (i = 0; i < Num_cond_packfiles; i++) {
         for (j = 0; j < Cond_packfiles[i].num_files; j++) {
-            if (hash == Cond_packfiles[i].entries[j].hash && ngps_stricmp(filename, Cond_packfiles[i].entries[j].name) == 0) {
+            if (hash == Cond_packfiles[i].entries[j].hash &&
+                ngps_stricmp(filename, Cond_packfiles[i].entries[j].name) == 0) {
                 Cond_packfiles[i].entries[j].offset = data - Cond_packfiles[i].data;
                 return;
             }

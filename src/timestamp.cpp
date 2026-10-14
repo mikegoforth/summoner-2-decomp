@@ -1,7 +1,5 @@
 #include "game/timestamp.h"
-
-// TODO: name once its unit is split (likely rand()).
-extern "C" unsigned int func_00191210(void);
+#include "game/unit_00190720.h"
 
 int Timestamp_ticker = 1;
 int Timestamp_realtime_ticker = 1;
@@ -48,7 +46,7 @@ void GameTimer::SetTimeout(int delta_milliseconds) {
 }
 
 void GameTimer::SetRandomTimeout(int low_milliseconds, int high_milliseconds) {
-    SetTimeout(((func_00191210() % (high_milliseconds - low_milliseconds + 1)) + low_milliseconds));
+    SetTimeout(((random_u32() % (high_milliseconds - low_milliseconds + 1)) + low_milliseconds));
 }
 
 bool GameTimer::elapsed() {
@@ -118,7 +116,7 @@ void RealtimeTimer::SetTimeout(int delta_milliseconds) {
 }
 
 void RealtimeTimer::SetRandomTimeout(int low_milliseconds, int high_milliseconds) {
-    SetTimeout(((func_00191210() % (high_milliseconds - low_milliseconds + 1)) + low_milliseconds));
+    SetTimeout(((random_u32() % (high_milliseconds - low_milliseconds + 1)) + low_milliseconds));
 }
 
 bool RealtimeTimer::elapsed() {

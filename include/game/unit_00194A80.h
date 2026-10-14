@@ -15,8 +15,8 @@
 // table wraps.
 void noise_table_init(void);
 float noise3(float vec[3]);
-
-extern float Noise_table[NOISE_TABLE_SIZE];
-extern bool Noise_table_initialized;
+// Smooth one-dimensional noise from Noise_table. t is wrapped into [0, 1] and covers the whole table,
+// so the result repeats with a period of 1.
+float periodic_noise(float t);
 
 #endif // GAME_UNIT_00194A80_H

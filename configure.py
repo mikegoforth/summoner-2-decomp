@@ -33,11 +33,16 @@ SPLAT_LD = Path("build") / f"{GAME}.ld"
 ELF = Path("iso") / GAME
 ROM = Path("iso") / f"{GAME}.rom"
 BUILD = Path("build")
+SYMBOL_ADDRS = Path("config") / "symbol_addrs.txt"
 
 BINUTILS = Path("tools/binutils/mips-ps2-decompals")
 WIBO = Path("tools/bin/wibo")
 OBJDIFF = Path("tools/bin/objdiff-cli")
 MWCC = Path("tools/compilers") / download_tool.COMPILER / "mwccps2.exe"
+# Run on every compiled object so that GNU ld places it where the original linker did
+# (see Quirks in docs/compiler.md).
+FIX_ALIGNMENT = Path("tools/fix_alignment.py")
+DROP_INLINE_COPIES = Path("tools/drop_inline_copies.py")
 
 ASFLAGS = "-EL -march=r5900 -mabi=eabi -G 0 -no-pad-sections -mno-pdr -I include"
 # fast_fptosi makes (int)float compile to an inline trunc.w.s instead of a call to fptosi;
@@ -68,10 +73,13 @@ UNIT_STATUS = {
     "debug": Matching,
     "file_packfile": Matching,
     "frametime": Matching,
+    "level_save": NonMatching,  # static initializer still in the shared .init assembly
+    "level_scripts": NonMatching,  # static initializer still in the shared .init assembly
     "matrix": NonMatching,  # static initializer still in the shared .init assembly
-    "memcard": NonMatching,  # static initializer still in the shared .init assembly
+    "memcard": Matching,
     "memcard_find": Matching,
     "memory": Matching,
+    "ngps_dvd": Matching,
     "ngps_file": NonMatching,  # static initializer still in the shared .init assembly
     "norlsallocpool": Matching,
     "parse": Matching,
@@ -83,9 +91,12 @@ UNIT_STATUS = {
     "unit_0018F070": NonMatching,  # static initializer still in the shared .init assembly
     "unit_00190720": Matching,
     "unit_00194A80": Matching,
+    "unit_00195310": NonMatching,  # static initializer still in the shared .init assembly
+    "unit_00196480": Matching,
     "unit_00196B10": NonMatching,  # static initializer still in the shared .init assembly
-    "unit_00197430": Matching,
     "unit_00197D00": Matching,
+    "vif": Matching,
+    "vif_mesh": Matching,
 }
 
 
@@ -114,6 +125,16 @@ SECTION_FOR_SUFFIX = {"data": ".data", "rodata": ".rodata", "sdata": ".sdata", "
 VRAM_COMMENT = re.compile(r"/\* (?:[0-9A-F]+ )?([0-9A-F]{8})\b")
 
 
+def start_address(src: Path) -> int | None:
+    """Original address of the first thing in a splat .s file."""
+    with open(src) as f:
+        for line in f:
+            m = VRAM_COMMENT.search(line)
+            if m:
+                return int(m.group(1), 16)
+    return None
+
+
 def section_and_alignment(src: Path) -> tuple[str, int]:
     """Section name and natural alignment of a splat .s file.
 
@@ -125,13 +146,34 @@ def section_and_alignment(src: Path) -> tuple[str, int]:
     """
     parts = src.name.split(".")
     section = SECTION_FOR_SUFFIX.get(parts[-2], ".text") if len(parts) > 2 else ".text"
-    with open(src) as f:
-        for line in f:
-            m = VRAM_COMMENT.search(line)
-            if m:
-                vram = int(m.group(1), 16)
-                return section, min(16, vram & -vram) if vram else 16
-    return section, 1
+    vram = start_address(src)
+    if vram is None:
+        return section, 1
+    return section, min(16, vram & -vram) if vram else 16
+
+
+def unit_ranges(units) -> dict[str, list[tuple[int, int]]]:
+    """Original address ranges of each unit's splat subsegments.
+
+    The subsegments cover the whole executable, so each one runs up to the
+    start of the next.
+    """
+    starts = []
+    for name, objs in units.items():
+        for obj in objs:
+            src = source_for_object(obj)
+            vram = start_address(src) if src.suffix == ".s" else None
+            if vram is not None:
+                starts.append((vram, name))
+    starts.sort()
+    ranges = {}
+    for (start, name), (end, _) in zip(starts, starts[1:] + [(1 << 32, None)]):
+        unit = ranges.setdefault(name, [])
+        if unit and unit[-1][1] == start:
+            unit[-1] = (unit[-1][0], end)
+        else:
+            unit.append((start, end))
+    return ranges
 
 
 def unit_name_for_object(obj: Path) -> str:
@@ -211,7 +253,9 @@ def main() -> None:
     )
     n.rule(
         "mwcc",
-        f"MWCIncludes=include $wibo $mwcc $cflags -c -o $out $in && {sys.executable} tools/fix_alignment.py $out",
+        f"MWCIncludes=include $wibo $mwcc $cflags -c -o $out $in"
+        f" && {sys.executable} {FIX_ALIGNMENT} $out"
+        f" && {sys.executable} {DROP_INLINE_COPIES} $out {SYMBOL_ADDRS} $unit_ranges",
         description="MWCC $in",
     )
     n.rule("ld_r", "${binutils}-ld -EL -r -o $out $in", description="LD -r $out")
@@ -236,6 +280,7 @@ def main() -> None:
     link_objs = []
     objdiff_units = []
     base_objs = []
+    ranges = unit_ranges(units)
     for name, objs in units.items():
         for obj in objs:
             src = source_for_object(obj)
@@ -259,7 +304,13 @@ def main() -> None:
         base = None
         if src_cpp.exists():
             base = BUILD / "src" / f"{name}.o"
-            n.build(str(base), "mwcc", str(src_cpp))
+            n.build(
+                str(base),
+                "mwcc",
+                str(src_cpp),
+                implicit=[str(FIX_ALIGNMENT), str(DROP_INLINE_COPIES), str(SYMBOL_ADDRS)],
+                variables={"unit_ranges": " ".join(f"0x{s:X}-0x{e:X}" for s, e in ranges.get(name, []))},
+            )
             base_objs.append(str(base))
             status = status or NonMatching
 

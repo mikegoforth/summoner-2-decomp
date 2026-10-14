@@ -1,13 +1,10 @@
+// Gradient (Perlin) noise and a periodic one-dimensional noise table.
 #include "game/unit_00194A80.h"
+#include "game/unit_00190720.h"
 
-// sqrtf: a single sqrt.s.
-extern "C" float func_00191580(float x);
-
-// TODO: name these once their units are split.
-// Next value from the precomputed random table, as an unsigned 32-bit integer.
-extern "C" u32 func_00191210(void);
-// Next value from the precomputed random table, scaled to [0, 1).
-extern "C" float func_00191250(void);
+extern "C" float func_001CC300(float x); // floorf
+// Eases t in [0, 1] in over the first ease_in and out over the last ease_out of the range.
+extern "C" float func_00175670(float t, float ease_in, float ease_out);
 
 static int Noise_p[NOISE_B + NOISE_B + 2];
 static float Noise_g3[NOISE_B + NOISE_B + 2][3];
@@ -15,8 +12,8 @@ static float Noise_g2[NOISE_B + NOISE_B + 2][2];
 static float Noise_g1[NOISE_B + NOISE_B + 2];
 static int Noise_start = 1;
 
-float Noise_table[NOISE_TABLE_SIZE];
-bool Noise_table_initialized;
+static float Noise_table[NOISE_TABLE_SIZE];
+static bool Noise_table_initialized;
 
 #define s_curve(t) (t * t * (3.0f - 2.0f * t))
 #define lerp(t, a, b) (a + t * (b - a))
@@ -32,7 +29,7 @@ void noise_table_init(void) {
     int i;
 
     for (i = 0; i < NOISE_TABLE_SIZE - 1; i++) {
-        Noise_table[i] = func_00191250();
+        Noise_table[i] = random_float();
     }
     Noise_table_initialized = true;
     Noise_table[NOISE_TABLE_SIZE - 1] = Noise_table[0];
@@ -41,7 +38,7 @@ void noise_table_init(void) {
 static void normalize2(float v[2]) {
     float s;
 
-    s = func_00191580(v[0] * v[0] + v[1] * v[1]);
+    s = sqrt_float(v[0] * v[0] + v[1] * v[1]);
     v[0] = v[0] / s;
     v[1] = v[1] / s;
 }
@@ -49,7 +46,7 @@ static void normalize2(float v[2]) {
 static void normalize3(float v[3]) {
     float s;
 
-    s = func_00191580(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    s = sqrt_float(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     v[0] = v[0] / s;
     v[1] = v[1] / s;
     v[2] = v[2] / s;
@@ -63,22 +60,22 @@ static void noise_init(void) {
     for (i = 0; i < NOISE_B; i++) {
         Noise_p[i] = i;
 
-        Noise_g1[i] = (float)((func_00191210() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
+        Noise_g1[i] = (float)((random_u32() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
 
         for (j = 0; j < 2; j++) {
-            Noise_g2[i][j] = (float)((func_00191210() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
+            Noise_g2[i][j] = (float)((random_u32() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
         }
         normalize2(Noise_g2[i]);
 
         for (j = 0; j < 3; j++) {
-            Noise_g3[i][j] = (float)((func_00191210() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
+            Noise_g3[i][j] = (float)((random_u32() % (NOISE_B + NOISE_B)) - NOISE_B) / NOISE_B;
         }
         normalize3(Noise_g3[i]);
     }
 
     while (--i) {
         k = Noise_p[i];
-        Noise_p[i] = Noise_p[j = func_00191210() % NOISE_B];
+        Noise_p[i] = Noise_p[j = random_u32() % NOISE_B];
         Noise_p[j] = k;
     }
 
@@ -154,4 +151,23 @@ float noise3(float vec[3]) {
     d = lerp(sy, a, b);
 
     return lerp(sz, c, d);
+}
+
+float periodic_noise(float t) {
+    if (!Noise_table_initialized) {
+        noise_table_init();
+    }
+    if (t > 1.0f || t < 0.0f) {
+        t -= (int)func_001CC300(t);
+    }
+    if (t == 1.0f) {
+        return Noise_table[NOISE_TABLE_SIZE - 1];
+    }
+    if (t == 0.0f) {
+        return Noise_table[0];
+    }
+    t = 100.0f * t;
+    int i = (int)func_001CC300(t);
+    float s = func_00175670(t - i, 0.25f, 0.25f);
+    return s * Noise_table[i + 1] + (1.0f - s) * Noise_table[i];
 }

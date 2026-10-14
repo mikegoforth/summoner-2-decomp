@@ -1,17 +1,13 @@
+// 3x3 rotation matrices and 4x3 transforms.
 #include "game/matrix.h"
+#include "game/unit_00190720.h"
 #include "macros.h"
 #include <string.h>
 
-// acosf
-extern "C" float func_001CC618(float x);
-
-// TODO: name these once their units are split.
-// Quaternion from the rotation part of m.
-extern "C" void func_00195310(quaternion* q, const matrix43& m);
-// Writes q as a rotation into m and clears its translation.
-extern "C" void func_00195570(const quaternion* q, matrix43* m);
-// Spherical interpolation from a to b.
-extern "C" void func_001958E0(quaternion* result, const quaternion& a, const quaternion& b, float t);
+// C library math.
+extern "C" float func_001CC4B8(float x); // sinf
+extern "C" float func_001CC200(float x); // cosf
+extern "C" float func_001CC618(float x); // acosf
 
 matrix3 identity_matrix(vector3(1.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f), vector3(0.0f, 0.0f, 1.0f));
 matrix43 identity_matrix43(vector3(1.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f), vector3(0.0f, 0.0f, 1.0f),
@@ -19,6 +15,94 @@ matrix43 identity_matrix43(vector3(1.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f),
 
 // The implied fourth column of a matrix43.
 static float Homogeneous_column[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+matrix3::matrix3(const matrix3& m) {
+    memcpy(this, &m, sizeof(matrix3));
+}
+
+matrix3::matrix3(const vector3& r, const vector3& u, const vector3& f) : rvec(r), uvec(u), fvec(f) {
+}
+
+matrix3::matrix3(float x, float z, float y) {
+    set_rotation(x, z, y);
+}
+
+matrix3 operator*(const matrix3& a, const matrix3& b) {
+    return matrix3(a.rvec * b, a.uvec * b, a.fvec * b);
+}
+
+void matrix3::set_rotation_sincos(float sx, float cx, float sz, float cz, float sy, float cy) {
+    float szsy = sz * sy;
+    float czcy = cz * cy;
+    float czsy = cz * sy;
+    float szcy = sz * cy;
+    rvec.x = czcy + sx * szsy;
+    uvec.z = szsy + sx * czcy;
+    uvec.x = sx * czsy - szcy;
+    rvec.z = sx * szcy - czsy;
+    fvec.x = sy * cx;
+    rvec.y = sz * cx;
+    uvec.y = cz * cx;
+    fvec.z = cy * cx;
+    fvec.y = -sx;
+}
+
+void matrix3::set_rotation(float x, float z, float y) {
+    float sx = func_001CC4B8(x);
+    float cx = func_001CC200(x);
+    float sz = func_001CC4B8(z);
+    float cz = func_001CC200(z);
+    float sy = func_001CC4B8(y);
+    float cy = func_001CC200(y);
+    set_rotation_sincos(sx, cx, sz, cz, sy, cy);
+}
+
+// Builds the rotation through the equivalent unit quaternion (x, y, z, w).
+void matrix3::set_axis_angle(float angle, const vector3& axis) {
+    float half = 0.5f * angle;
+    float s = func_001CC4B8(half);
+    float x = axis.x * s;
+    float y = axis.y * s;
+    float z = axis.z * s;
+    float w = func_001CC200(half);
+    rvec.x = 1.0f - 2.0f * (y * y) - 2.0f * (z * z);
+    rvec.y = 2.0f * (x * y) + 2.0f * (w * z);
+    rvec.z = 2.0f * (x * z) - 2.0f * (w * y);
+    uvec.x = 2.0f * (x * y) - 2.0f * (w * z);
+    uvec.y = 1.0f - 2.0f * (x * x) - 2.0f * (z * z);
+    uvec.z = 2.0f * (y * z) + 2.0f * (w * x);
+    fvec.x = 2.0f * (x * z) + 2.0f * (w * y);
+    fvec.y = 2.0f * (y * z) - 2.0f * (w * x);
+    fvec.z = 1.0f - 2.0f * (x * x) - 2.0f * (y * y);
+}
+
+void matrix3::get_rotation(float& x, float& z, float& y) const {
+    if (fvec.x == 0.0f && fvec.z == 0.0f) {
+        y = 0.0f;
+    } else {
+        y = arctan2(fvec.x, fvec.z);
+    }
+    float s = func_001CC4B8(y);
+    float c = func_001CC200(y);
+    // cos(x), with the Y rotation removed.
+    float cx = fvec.z * c + fvec.x * s;
+    if (cx == 0.0f && fvec.y == 0.0f) {
+        x = 0.0f;
+    } else {
+        x = arctan2(-fvec.y, cx);
+    }
+    if (cx == 0.0f) {
+        z = 0.0f;
+    } else {
+        float sz = rvec.y / cx;
+        float cz = uvec.y / cx;
+        if (sz == 0.0f && cz == 0.0f) {
+            z = 0.0f;
+        } else {
+            z = arctan2(sz, cz);
+        }
+    }
+}
 
 void matrix3::get_axis_angle(vector3* axis, float* angle) const {
     float cos_angle;
@@ -50,17 +134,17 @@ void matrix3::get_axis_angle(vector3* axis, float* angle) const {
         }
         switch (i) {
         case 0:
-            axis->x = func_00191580(1.0f + rvec.x);
+            axis->x = sqrt_float(1.0f + rvec.x);
             axis->y = rvec.y / axis->x;
             axis->z = rvec.z / axis->x;
             break;
         case 1:
-            axis->y = func_00191580(1.0f + uvec.y);
+            axis->y = sqrt_float(1.0f + uvec.y);
             axis->x = uvec.x / axis->y;
             axis->z = uvec.z / axis->y;
             break;
         case 2:
-            axis->z = func_00191580(1.0f + fvec.z);
+            axis->z = sqrt_float(1.0f + fvec.z);
             axis->x = fvec.x / axis->z;
             axis->y = fvec.y / axis->z;
             break;
@@ -339,7 +423,7 @@ matrix43 matrix43::inverse() const {
 }
 
 void matrix43::set(const quaternion& q, const vector3& position) {
-    func_00195570(&q, this);
+    q.get_matrix(this);
     m[3][0] = position.x;
     m[3][1] = position.y;
     m[3][2] = position.z;
@@ -347,14 +431,12 @@ void matrix43::set(const quaternion& q, const vector3& position) {
 
 matrix43 interpolate(const matrix43& from, const matrix43& to, float t) {
     matrix43 result;
-    quaternion q_from;
-    quaternion q_to;
+    quaternion q_from(from);
+    quaternion q_to(to);
     quaternion q;
 
-    func_00195310(&q_from, from);
-    func_00195310(&q_to, to);
-    func_001958E0(&q, q_from, q_to, t);
-    func_00195570(&q, &result);
+    slerp(&q, q_from, q_to, t);
+    q.get_matrix(&result);
     result.m[3][0] = from.m[3][0] * (1.0f - t) + to.m[3][0] * t;
     result.m[3][1] = from.m[3][1] * (1.0f - t) + to.m[3][1] * t;
     result.m[3][2] = from.m[3][2] * (1.0f - t) + to.m[3][2] * t;

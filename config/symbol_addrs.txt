@@ -526,3 +526,202 @@ Pads = 0x0091E780; // size:0xF80
 // unit_00190720.cpp
 box_from_points__FR7vector3R7vector3RC7vector3RC7vector3 = 0x00190720; // type:func
 boxes_overlap__FRC7vector3RC7vector3RC7vector3RC7vector3 = 0x001907D0; // type:func
+
+// vector3(float, float, float): the game's single out-of-line copy of this inline constructor
+// (unit not split yet). Compiled objects drop their own copies (tools/drop_inline_copies.py).
+__ct__7vector3Ffff = 0x001026F0; // type:func size:0x14
+
+// vif.cpp
+Vif_unpack_formats = 0x002A9B90; // size:0x104
+
+// ngps_dvd.cpp
+dvd_add_request__Fi = 0x001A2950; // type:func
+dvd_remove_request__FP10DVDRequest = 0x001A29F0; // type:func
+dvd_show_retry_message__Fv = 0x001A2A20; // type:func
+dvd_issue_read__FUiUiPv = 0x001A2CE0; // type:func
+dvd_initialize__Fv = 0x001A2D70; // type:func
+dvd_disk_ready__Fb = 0x001A2E20; // type:func
+dvd_file_idle__FP7DVDFile = 0x001A2E50; // type:func
+dvd_start_read__FP7DVDFilePUciP10DVDRequest = 0x001A2EC0; // type:func
+dvd_update__Fv = 0x001A3220; // type:func
+dvd_open__Fii = 0x001A3460; // type:func
+dvd_seek__FP7DVDFilei = 0x001A3570; // type:func
+dvd_read__FP7DVDFilePUci = 0x001A36C0; // type:func
+dvd_read_compressed__FP7DVDFilePUci = 0x001A3780; // type:func
+dvd_read_async__FP7DVDFilePUci = 0x001A3A40; // type:func
+dvd_close__FP7DVDFile = 0x001A3B10; // type:func
+dvd_find_file__FPCc = 0x001A3B70; // type:func
+ngps_read_compressed__FPUciP9NGPS_FILE = 0x001A3BD0; // type:func
+packfile_hash__FPCc = 0x001A3E40; // type:func
+packfile_fix_names__FP8Packfile = 0x001A3EB0; // type:func
+packfile_read_host__FPviP9NGPS_FILE = 0x001A3F00; // type:func
+packfile_read_hdd__FPviPv = 0x001A3FA0; // type:func
+packfile_read_dvd__FPviP7DVDFile = 0x001A4040; // type:func
+packfile_data_start__FP8Packfile = 0x001A40E0; // type:func
+packfile_assign_offsets__FP8Packfile = 0x001A4120; // type:func
+packfile_register__FP8Packfile = 0x001A41D0; // type:func
+split_path__FPCcPcPc = 0x001A42B0; // type:func
+packfile_locate__FPCcPi = 0x001A4370; // type:func
+packfile_read_header__FP8PackfilePUc = 0x001A4500; // type:func
+Dvd_show_retry_message = 0x002D48E8; // size:0x4
+Dvd_read_mode = 0x002D48EC; // size:0x4
+Dvd_retry_dot_time = 0x002D48F0; // size:0x4
+Dvd_retry_dots = 0x002D48F4; // size:0x4
+Dvd_files = 0x00929A40; // size:0x20100
+Dvd_requests = 0x00949B40; // size:0x60
+Dvd_request_list = 0x00949BA0; // size:0x18
+
+// unit_00190720.cpp
+sweep_box__FR7vector3R7vector3RC7vector3 = 0x00190870; // type:func
+get_box_corner__FR7vector3iRC7vector3RC7vector3 = 0x00190920; // type:func
+get_box_corners_along__FRC7vector3PiPi = 0x001909E0; // type:func
+make_crc_table__Fv = 0x00190B00; // type:func
+crc32__FPCUciUi = 0x00190B70; // type:func
+crc32_string__FPCcUi = 0x00190BD0; // type:func
+sgenrand__FUi = 0x00190C20; // type:func
+genrand__Fv = 0x00190D10; // type:func
+init_math_tables__Fv = 0x001910E0; // type:func
+random_u32__Fv = 0x00191210; // type:func
+random_float__Fv = 0x00191250; // type:func
+refill_random_table__Fv = 0x001912C0; // type:func
+random_range__Fff = 0x00191310; // type:func
+arctan2__Fff = 0x00191350; // type:func
+fast_cos__Ff = 0x00191420; // type:func
+fast_sin__Ff = 0x001914D0; // type:func
+sqrt_float__Ff = 0x00191580; // type:func
+outcode__FRC7vector3RC7vector3RC7vector3 = 0x00191590; // type:func
+intersect_segment_plane__FP7vector4RC7vector3RC7vector3RC7vector3RC7vector3 = 0x00191640; // type:func
+segment_crosses_plane__FRC7vector3RC7vector3RC7vector4Pf = 0x001917D0; // type:func
+intersect_segment_sphere__FP7vector3RC7vector3RC7vector3RC7vector3f = 0x00191880; // type:func
+point_in_polygon_xz__FRC7vector3iPP7vector3 = 0x00191B10; // type:func
+point_in_polygon__FRC7vector3iPP7vector3RC7vector3 = 0x00191CE0; // type:func
+spheres_overlap__FRC7vector3RC7vector3ff = 0x00191FA0; // type:func
+intersect_segment_slab__FP7vector3RC7vector3RC7vector3RC7vector3RC7vector3PfPff = 0x00191FF0; // type:func
+sweep_sphere_edge__FR7vector3RC7vector3RC7vector3fRC7vector3RC7vector3Pff = 0x00192230; // type:func
+sweep_sphere_polygon__FR7vector3RC7vector3RC7vector3fiPP7vector3Pf = 0x00192830; // type:func
+intersect_ray_plane__FRC3rayRC5planeR7vector3 = 0x00192B10; // type:func
+clip_segment_obb__FRC7vector3RC7matrix3RC7vector3RC7vector3RC7vector3R7vector3i = 0x00192C10; // type:func
+clip_segment_box__FRC7vector3RC7vector3RC7vector3RC7vector3R7vector3i = 0x00192E30; // type:func
+intersect_ray_sphere__FR7vector3PfRC3rayfRC7vector3f = 0x00193150; // type:func
+segments_intersect_2d__FPCfPCfffff = 0x001932B0; // type:func
+projection_axes = 0x002A9B50; // size:0x18
+mti = 0x002D3F20; // size:0x4
+random_index = 0x002D47E8; // size:0x4
+crc_table = 0x0091F700; // size:0x400
+cos_table = 0x0091FB00; // size:0x194
+sin_table = 0x0091FCA0; // size:0x194
+mt = 0x0091FE40; // size:0x9C0
+random_table = 0x00920800; // size:0x1360
+
+// matrix.cpp
+__ct__7matrix3FRC7matrix3 = 0x001933B0; // type:func
+__ct__7matrix3Ffff = 0x00193430; // type:func
+__ml__FRC7matrix3RC7matrix3 = 0x00193460; // type:func
+set_rotation_sincos__7matrix3Fffffff = 0x001935D0; // type:func
+set_rotation__7matrix3Ffff = 0x00193640; // type:func
+set_axis_angle__7matrix3FfRC7vector3 = 0x00193700; // type:func
+get_rotation__7matrix3CFRfRfRf = 0x00193820; // type:func
+
+// unit_00194A80.cpp
+periodic_noise__Ff = 0x001951D0; // type:func
+
+// unit_00195310.cpp
+__ct__10quaternionFRC8matrix43 = 0x00195310; // type:func
+get_matrix__10quaternionCFP8matrix43 = 0x00195570; // type:func
+get_matrix__10quaternionCFP7matrix3 = 0x001956D0; // type:func
+make_identity__10quaternionFv = 0x00195820; // type:func
+dot__FRC10quaternionRC10quaternion = 0x00195840; // type:func
+dot__FRC17packed_quaternionRC17packed_quaternion = 0x00195880; // type:func
+slerp__FP10quaternionRC10quaternionRC10quaternionf = 0x001958E0; // type:func
+slerp__FP17packed_quaternionRC17packed_quaternionRC17packed_quaternionf = 0x00195D80; // type:func
+squad__FP10quaternionRC17packed_quaternionRC17packed_quaternionRC17packed_quaternionRC17packed_quaternionf = 0x001962F0; // type:func
+set__17packed_quaternionFRC10quaternion = 0x00196410; // type:func
+Identity_packed_quaternion = 0x002D4828; // size:0x8
+Identity_quaternion = 0x00925670; // size:0x10
+
+// unit_00196480.cpp
+__ct__6splineFiP7vector3 = 0x00196480; // type:func
+set__6splineFiP7vector3 = 0x001964B0; // type:func
+evaluate__6splineCFfP7vector3 = 0x001964C0; // type:func
+
+// level_scripts.cpp
+func_001AFE00__Fv = 0x001AFE00; // type:func
+func_001AFF10__Fv = 0x001AFF10; // type:func
+func_001AFFA0__Fv = 0x001AFFA0; // type:func
+func_001B0010__Fv = 0x001B0010; // type:func
+func_001B0080__FP5ActorP8NavpointP8Navpoint = 0x001B0080; // type:func
+func_001B02E0__Fv = 0x001B02E0; // type:func
+func_001B0420__Fv = 0x001B0420; // type:func
+func_001B05F0__Fv = 0x001B05F0; // type:func
+func_001B0870__Fv = 0x001B0870; // type:func
+func_001B08B0__FPv = 0x001B08B0; // type:func
+__ct__13NavNodeScriptFv = 0x001B09C0; // type:func
+func_001B09D0__Fi = 0x001B09D0; // type:func
+func_001B0B90__FiP5Actor = 0x001B0B90; // type:func
+func_001B0D60__Fv = 0x001B0D60; // type:func
+func_001B0E70__Fv = 0x001B0E70; // type:func
+func_001B0FE0__Fv = 0x001B0FE0; // type:func
+func_001B1010__FPCc = 0x001B1010; // type:func
+func_001B1080__FP11NavpointDef = 0x001B1080; // type:func
+func_001B1330__FPCc = 0x001B1330; // type:func
+func_001B1420__FPC7vector3 = 0x001B1420; // type:func
+func_001B1590__FP12ScriptTarget = 0x001B1590; // type:func
+get_script_target_team__FP12ScriptTarget = 0x001B1960; // type:func
+find_level_item__FPCc = 0x001B1AC0; // type:func
+add_ambient_sound__FiP8Navpointif = 0x001B1B50; // type:func
+get_nav_node_script__FP7NavNode = 0x001B1BF0; // type:func
+find_constraint__FPCc = 0x001B1C70; // type:func
+find_click_spot__FPCc = 0x001B1D00; // type:func
+is_in_trigger_sphere__FPCcP5Actor = 0x001B1D90; // type:func
+find_shopkeeper__FPv = 0x001B1F10; // type:func
+is_in_region__FPCcP5Actor = 0x001B1F60; // type:func
+create_avoidance_spline__FP8NavpointP8Navpoint = 0x001B2160; // type:func
+destroy_avoidance_spline__Fi = 0x001B26C0; // type:func
+make_table_filename__FPcPCcPCc = 0x001B26D0; // type:func
+get_party_gather_state__Fv = 0x001B2770; // type:func
+place_party_at_start__Fv = 0x001B29A0; // type:func
+__ct__6RegionFv = 0x001B2A90; // type:func
+__ct__8NavpointFv = 0x001B2AA0; // type:func
+
+// level_save.cpp
+open_flagged_doors__Fv = 0x001A5CE0; // type:func
+UpgradeCAMR__9LevelSaveFPii = 0x001ACC20; // type:func
+UpgradeMESH__9LevelSaveFPii = 0x001ACCA0; // type:func
+UpgradeDOOR__9LevelSaveFPii = 0x001ACD20; // type:func
+UpgradeLVFX__9LevelSaveFPii = 0x001ACDA0; // type:func
+UpgradeDROP__9LevelSaveFPii = 0x001ACE20; // type:func
+UpgradeLSEQ__9LevelSaveFPii = 0x001ACEA0; // type:func
+UpgradeGLYF__9LevelSaveFPii = 0x001ACF20; // type:func
+UpgradeCHNG__9LevelSaveFPii = 0x001ACFA0; // type:func
+UpgradeSPLN__9LevelSaveFPii = 0x001AD020; // type:func
+UpgradeOPTS__9LevelSaveFPii = 0x001AD0A0; // type:func
+Upgrade__9LevelSaveFi = 0x001AD120; // type:func
+GetClickState__9LevelSaveFPCc = 0x001AD380; // type:func
+SetClickState__9LevelSaveFPCcUi = 0x001AD500; // type:func
+Init__9LevelSaveFPvi = 0x001AD720; // type:func
+Reset__9LevelSaveFv = 0x001AD800; // type:func
+GetThumbnail__9LevelSaveFv = 0x001AD8D0; // type:func
+FindGlobalFlag__9LevelSaveFPCc = 0x001AD8E0; // type:func
+GetGlobalFlag__9LevelSaveFi = 0x001AD970; // type:func
+GetGlobalFlag__9LevelSaveFPCci = 0x001AD9C0; // type:func
+GetGlobalFlag__9LevelSaveFUiPCc = 0x001ADA00; // type:func
+GetGlobalFlag__9LevelSaveFPCc = 0x001ADA90; // type:func
+SetGlobalFlag__9LevelSaveFPCcib = 0x001ADAE0; // type:func
+SetGlobalFlag__9LevelSaveFUibPCc = 0x001ADB50; // type:func
+SetGlobalFlag__9LevelSaveFPCcb = 0x001ADC00; // type:func
+FindGlobalInt__9LevelSaveFPCc = 0x001ADC60; // type:func
+GetGlobalInt__9LevelSaveFi = 0x001ADCE0; // type:func
+GetGlobalInt__9LevelSaveFPCci = 0x001ADD10; // type:func
+GetGlobalInt__9LevelSaveFUiPCc = 0x001ADD30; // type:func
+GetGlobalInt__9LevelSaveFPCc = 0x001ADDA0; // type:func
+SetGlobalInt__9LevelSaveFPCcii = 0x001ADDF0; // type:func
+SetGlobalInt__9LevelSaveFUiiPCc = 0x001ADE10; // type:func
+SetGlobalInt__9LevelSaveFPCci = 0x001ADE80; // type:func
+GetItemFlag__9LevelSaveFUi = 0x001ADEE0; // type:func
+GetItemFlag__9LevelSaveFPCc = 0x001ADFC0; // type:func
+SetItemFlag__9LevelSaveFUib = 0x001AE000; // type:func
+SetItemFlag__9LevelSaveFPCcb = 0x001AE0D0; // type:func
+GetAutomap__9LevelSaveFi = 0x001AE120; // type:func
+SetAutomapBit__9LevelSaveFii = 0x001AE160; // type:func
+Save__9LevelSaveFPCci = 0x001AE210; // type:func
+jtbl_002BACC0 = 0x002BACC0; // size:0x28

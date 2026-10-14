@@ -3,6 +3,7 @@
 #include "game/ngps_file.h"
 #include "game/file_packfile.h"
 #include "game/matrix.h"
+#include "game/ngps_dvd.h"
 #include "game/platform_ngps.h"
 #include "types.h"
 #include <stdio.h>
@@ -35,34 +36,11 @@ struct FileDirectory {
     /* 0x04 */ int unknown_04;
 };
 
-// DVD reader structures (ngps_dvd.cpp).
-struct DVDFile {
-    /* 0x0000 */ u8 buffer[0x8000];
-    /* 0x8000 */ int buffered;
-    /* 0x8004 */ int buffer_lsn;
-    /* 0x8008 */ int buffer_size;
-    /* 0x800C */ int sector;
-    /* 0x8010 */ u16 sector_offset;
-    /* 0x8012 */ u8 in_use;
-};
-
-struct DVDRequest {
-    /* 0x00 */ int copy_size;
-    /* 0x04 */ int remaining;
-    /* 0x08 */ int pending;
-    /* 0x0C */ u8* destination;
-    /* 0x10 */ DVDRequest* next;
-    /* 0x14 */ DVDRequest* prev;
-};
-
 extern "C" {
 // C library.
 char* func_00250230(const char* string, int c); // strrchr
 // Sony SDK 2.4 libkernel.
 int func_001BD3E8(const char* filename, int args, const char* argp); // sceSifLoadModule
-// TODO: name once their units are split.
-void func_001A2D70(void);          // DVD reader setup
-void func_00195820(quaternion* q); // set to identity
 }
 
 char Base_path[256];
@@ -88,11 +66,11 @@ char* make_path(int directory, const char* name, char* path) {
 
 void file_system_initialize(int unused, bool load_packfiles) {
     Base_path[0] = '\0';
-    func_001A2D70();
+    dvd_initialize();
     Default_vector.x = 0.0f;
     Default_vector.y = 0.0f;
     Default_vector.z = 0.0f;
-    func_00195820(&Default_quaternion);
+    Default_quaternion.make_identity();
     Default_matrix.make_identity();
     if (load_packfiles) {
         packfile_init();

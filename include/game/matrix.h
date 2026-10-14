@@ -2,19 +2,11 @@
 #define GAME_MATRIX_H
 
 #include "types.h"
+#include "game/unit_00195310.h"
 #include "game/unit_00196B10.h"
 
-class quaternion {
-public:
-    float x;
-    float y;
-    float z;
-    float w;
-
-    quaternion() {}
-};
-
-// Rotation matrix stored as three rows: right, up and forward.
+// Rotation matrix stored as three rows: right, up and forward. Vectors are row vectors: a vector
+// times the matrix is v.x * rvec + v.y * uvec + v.z * fvec.
 class matrix3 {
 public:
     vector3 rvec;
@@ -22,8 +14,19 @@ public:
     vector3 fvec;
 
     matrix3() {}
+    matrix3(const matrix3& m);
     matrix3(const vector3& r, const vector3& u, const vector3& f);
+    // Rotation from angles in radians; see set_rotation().
+    matrix3(float x, float z, float y);
 
+    // Rotation from the sines and cosines of the angles about X, Z and Y.
+    void set_rotation_sincos(float sx, float cx, float sz, float cz, float sy, float cy);
+    // Rotation by x about the X axis, z about the Z axis and y about the Y axis (radians).
+    void set_rotation(float x, float z, float y);
+    // Rotation by angle (radians) about axis, which should be unit length.
+    void set_axis_angle(float angle, const vector3& axis);
+    // Inverse of set_rotation(): recovers the three angles.
+    void get_rotation(float& x, float& z, float& y) const;
     void get_axis_angle(vector3* axis, float* angle) const;
     matrix3 transpose() const;
     void orthogonalize();
@@ -34,6 +37,14 @@ public:
     void set_from_forward_up(const vector3& forward, const vector3& up);
     bool equals(const matrix3& m, const float& tolerance) const;
 };
+
+// Row vector times matrix.
+inline vector3 operator*(const vector3& v, const matrix3& m) {
+    return vector3(v.x * m.rvec.x + v.y * m.uvec.x + v.z * m.fvec.x, v.x * m.rvec.y + v.y * m.uvec.y + v.z * m.fvec.y,
+                   v.x * m.rvec.z + v.y * m.uvec.z + v.z * m.fvec.z);
+}
+
+matrix3 operator*(const matrix3& a, const matrix3& b);
 
 // Rotation rows 0-2 and translation row 3 of a 4x4 matrix whose last column is 0, 0, 0, 1.
 class matrix43 {

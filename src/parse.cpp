@@ -7,6 +7,7 @@
 #include "game/memory.h"
 #include "game/ngps_file.h"
 #include "game/platform_ngps.h"
+#include "game/unit_00190720.h"
 #include "macros.h"
 #include <stdio.h>
 #include <string.h>
@@ -18,14 +19,6 @@ static const char THIS_FILE[] = __FILE__;
 // newlib's character class table (ctype.h): _U | _L | _N marks letters and digits.
 extern "C" const char _ctype_[];
 #define isalnum(c) ((_ctype_ + 1)[(unsigned)(c)] & 7)
-
-extern "C" {
-// TODO: name these once their units are split.
-// CRC-32 of a block, continuing from crc.
-u32 func_00190B70(const void* data, int size, u32 crc);
-// Builds the rotation matrix for three angles (radians).
-void func_00193640(matrix3* m, float x, float y, float z);
-}
 
 TextFile::TextFile() {
     buffer = NULL;
@@ -447,7 +440,7 @@ void TextFile::ParseMatrix(matrix3& m) {
         m = matrix3(vector3(1.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f), vector3(0.0f, 0.0f, 1.0f));
     } else if (*cursor != '<') {
         float angle = ParseFloat();
-        func_00193640(&m, 0.0f, 0.0f, angle);
+        m.set_rotation(0.0f, 0.0f, angle);
     } else {
         ParseVector(m.rvec);
         Accept(",");
@@ -602,7 +595,7 @@ int TextFile::ParseTypeString(const TextFileType* types, int count) {
 }
 
 u32 TextFile::Checksum() {
-    return func_00190B70(buffer, size, 0);
+    return crc32((const u8*)buffer, size, 0);
 }
 
 BOOL TextFile::AtEnd() {

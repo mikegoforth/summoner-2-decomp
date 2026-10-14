@@ -55,6 +55,20 @@ Three things separate the builds:
 - **String alignment.** CodeWarrior marks string literals of 4 bytes or fewer as 4-byte aligned,
   but every string literal in the game sits on an 8-byte boundary. The build raises those
   sections to 8 after compiling (`tools/fix_alignment.py`) so GNU ld places them the same way.
+- **Small data alignment.** Bools, chars and the guard bytes of function-local statics each get
+  a 1-byte-aligned `.sdata` or `.sbss` section, but the game keeps them 4 bytes apart (guard
+  bytes at `0x2D47EC`-`0x2D480C`, bools at `0x2D4964` and `0x2D4968`), so the same tool raises
+  `.sdata` and `.sbss` to 4. `.data` and `.bss` only get variables over 8 bytes, which
+  CodeWarrior already aligns to 8 or 16, as the game has them.
+- **Out-of-line copies of inline functions.** A call CodeWarrior doesn't inline goes to a copy of
+  the function, which every object that needs one emits in its own `.text` section under symbol
+  binding 13 (vtables and the statics of inline functions get the same binding). The original
+  linker kept one copy (`vector3::vector3(float, float, float)` at `0x1026F0`); GNU ld keeps them
+  all, shifting the code after them. `tools/drop_inline_copies.py` drops a copy that
+  `config/symbol_addrs.txt` names outside the object's unit: the symbol becomes a reference to the
+  game's copy and the section becomes `.discard.text`, which the linker script discards. Copies the
+  unit holds itself (`PadPort::PadPort()` at `0x190710`) or that aren't named yet stay, so name
+  the game's copy before linking a unit that carries one.
 - **Static initializers** (`__sinit_<file>_cpp`) go to `.init`, with a pointer in `.ctor`. In
   the executable these sit together after `.rodata` (`0x2CF680` and `0x2D39D0`), not next to
   their file's code. They aren't split per file yet, so a variable that only a static

@@ -15,11 +15,12 @@
 // SysFile open mode flags.
 #define SYSFILE_MODE_READ 0x1
 
+// Size passed to SysFile::Open by callers that set no limit (Open ignores the size).
+#define SYSFILE_ANY_SIZE 9999999
+
 class vector3;
 class quaternion;
 struct PackfileEntry;
-struct DVDFile;
-struct DVDRequest;
 
 // A file inside the packfiles, read through one of SYSFILE_MAX_OPEN slots. Every read takes a
 // version: the data is read only if the file's version is at least that version, otherwise the
@@ -134,9 +135,6 @@ const char* get_extension(const char* filename);
 void load_module(const char* name);
 BOOL use_host_files(void);
 int find_free_file_slot(void);
-
-void dvd_reset_file(DVDFile* file);
-void dvd_reset_request(DVDRequest* request);
 
 extern char Base_path[256];
 extern BOOL Use_host_files;
